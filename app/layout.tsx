@@ -1,10 +1,24 @@
 import type { Metadata } from "next";
-import ClientChaosShell from "@/app/components/ClientChaosShell";
+import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  display: "swap",
+  weight: ["400", "600", "700"],
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "Chef",
-  description: "AI-powered meal planning",
+  title: "MealPlan Pro",
+  description:
+    "Keep your recipes in one place, plan the week in minutes, and let the Recipe Bot fill the gaps.",
 };
 
 export default function RootLayout({
@@ -13,10 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
-      <body className="min-h-full flex flex-col">
-        <ClientChaosShell>{children}</ClientChaosShell>
-      </body>
+    <html lang="en" className={`h-full ${fraunces.variable} ${inter.variable}`}>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

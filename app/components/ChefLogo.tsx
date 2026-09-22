@@ -19,12 +19,12 @@ export default function ChefLogo({
   const image = (
     <Image
       src={SRC}
-      alt="Chef"
+      alt="MealPlan Pro"
       width={size}
       height={size}
+      style={{ width: size, height: size }}
       className={`shrink-0 object-contain ${className}`}
       priority={priority}
-      unoptimized
     />
   );
 

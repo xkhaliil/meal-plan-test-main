@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/auth";
+import { validateRecipeInput } from "@/lib/recipeInput";
 
 export async function GET() {
   const recipes = await prisma.recipe.findMany({
@@ -21,21 +22,28 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
+  const validated = validateRecipeInput(body);
+  if ("error" in validated) {
+    return NextResponse.json({ error: validated.error }, { status: 400 });
+  }
 
   const recipe = await prisma.recipe.create({
     data: {
-      title: body.title,
-      description: body.description,
-      imageUrl: body.imageUrl || "/images/recipes/classic-pancakes.jpg",
-      prepTime: body.prepTime || 0,
-      cookTime: body.cookTime || 0,
-      servings: body.servings || 1,
-      calories: body.calories,
-      cuisine: body.cuisine,
-      dietaryTags: body.dietaryTags,
+      title: validated.title!,
+      description: validated.description!,
+      imageUrl:
+        typeof body.imageUrl === "string" && body.imageUrl.trim()
+          ? body.imageUrl.trim()
+          : "/images/recipes/classic-pancakes.jpg",
+      prepTime: validated.prepTime!,
+      cookTime: validated.cookTime!,
+      servings: validated.servings!,
+      calories: validated.calories ?? null,
+      cuisine: validated.cuisine ?? null,
+      dietaryTags: validated.dietaryTags ?? null,
       userId: session.userId,
       ingredients: {
-        create: body.ingredients || [],
+        create: validated.ingredients!,
       },
     },
     include: { ingredients: true },

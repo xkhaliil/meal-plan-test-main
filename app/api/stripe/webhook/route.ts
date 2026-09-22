@@ -26,8 +26,32 @@ export async function POST(req: NextRequest) {
         data: {
           plan: "pro",
           stripeCustomerId: session.customer as string,
+          stripeSubscriptionId:
+            typeof session.subscription === "string" ? session.subscription : null,
         },
       });
+    }
+  }
+
+  if (
+    event.type === "customer.subscription.deleted" ||
+    event.type === "customer.subscription.updated"
+  ) {
+    const subscription = event.data.object;
+    const isInactive =
+      event.type === "customer.subscription.deleted" ||
+      ["canceled", "unpaid", "incomplete_expired"].includes(subscription.status);
+
+    if (isInactive) {
+      const user = await prisma.user.findFirst({
+        where: { stripeSubscriptionId: subscription.id },
+      });
+      if (user) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { plan: "free", stripeSubscriptionId: null },
+        });
+      }
     }
   }
 

@@ -1,20 +1,21 @@
 "use client";
 
 import ChefLogo from "@/app/components/ChefLogo";
-import { CookingGifBackdrop } from "@/app/components/CookingGifPlaster";
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  console.log("[CHAOS render] LoginPage");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setBusy(true);
 
     const res = await fetch("/api/auth/login", {
       method: "POST",
@@ -22,7 +23,8 @@ export default function LoginPage() {
       body: JSON.stringify({ email, password }),
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+    setBusy(false);
 
     if (!res.ok) {
       setError(data.error || "Login failed");
@@ -35,61 +37,67 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center font-serif">
-      <div className="absolute inset-0 z-0 bg-purple-900" aria-hidden />
-      <CookingGifBackdrop stackClass="z-[1]" />
-      <div className="relative z-10 w-full p-4 flex justify-center">
-      <div className="bg-white p-8 w-[450px]">
-        <div className="flex items-center gap-3 mb-2">
-          <ChefLogo size={48} priority />
-          <h1 className="text-4xl font-bold text-orange-600">Chef</h1>
+    <div className="flex min-h-screen items-center justify-center px-6 py-12">
+      <div className="w-full max-w-sm">
+        <Link href="/landing" className="flex items-center justify-center gap-2.5">
+          <ChefLogo size={32} href={null} priority />
+          <span className="font-display text-xl font-semibold text-ink">
+            MealPlan Pro
+          </span>
+        </Link>
+
+        <div className="card mt-8 p-8">
+          <h1 className="text-2xl font-semibold text-ink">Welcome back</h1>
+          <p className="mt-1 text-sm text-muted">Sign in to your kitchen.</p>
+
+          {error && <div className="alert-error mt-5">{error}</div>}
+
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <div>
+              <label className="label" htmlFor="email">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input"
+                placeholder="you@example.com"
+              />
+            </div>
+
+            <div>
+              <label className="label" htmlFor="password">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <button type="submit" disabled={busy} className="btn btn-primary w-full">
+              {busy ? "Signing in..." : "Sign in"}
+            </button>
+          </form>
         </div>
-        <h2 className="text-lg text-gray-500 mb-8">Sign in to your account</h2>
 
-        {error && (
-          <div className="bg-red-100 text-red-800 p-3 mb-4 text-sm">{error}</div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-bold text-gray-800 mb-1">
-              Email Address
-            </label>
-            <input
-              type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border-2 border-gray-300 p-3 text-sm"
-              placeholder="you@example.com"
-            />
-          </div>
-          <div className="mb-6">
-            <label className="block text-sm font-bold text-gray-800 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border-2 border-gray-300 p-3 text-sm"
-              placeholder="••••••••"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-lime-500 text-black font-bold py-3 text-lg"
+        <p className="mt-6 text-center text-sm text-muted">
+          New here?{" "}
+          <Link
+            href="/register"
+            className="font-medium text-terracotta hover:text-terracotta-dark"
           >
-            LOG IN
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-gray-500">
-          Don&apos;t have an account?{" "}
-          <a href="/register" className="text-purple-600 underline">
-            Register here
-          </a>
+            Create an account
+          </Link>
         </p>
-      </div>
       </div>
     </div>
   );

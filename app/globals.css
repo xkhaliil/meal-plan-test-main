@@ -1,272 +1,167 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-cream: #faf8f4;
+  --color-surface: #ffffff;
+  --color-ink: #1c1917;
+  --color-muted: #7c736b;
+  --color-subtle: #a8a099;
+  --color-line: #ebe5dc;
+  --color-terracotta: #c0562f;
+  --color-terracotta-dark: #a3451f;
+  --color-terracotta-soft: #fbeee8;
+  --color-sage: #5c7f5a;
+  --color-sage-soft: #eef3ec;
+
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--color-line);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* --- Client chaos: CPU-heavy visuals + hidden system cursor (see ClientChaosShell) --- */
-html.chaos-cursor-none,
-html.chaos-cursor-none * {
-  cursor: none !important;
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
 }
 
-@keyframes chaos-pulse-glow {
-  0%,
-  100% {
-    filter: contrast(1);
-    box-shadow:
-      inset 0 0 70px rgba(124, 58, 237, 0.09),
-      inset 0 0 120px rgba(88, 28, 135, 0.06);
-  }
-  50% {
-    filter: contrast(1.03);
-    box-shadow:
-      inset 0 0 90px rgba(124, 58, 237, 0.12),
-      inset 0 0 140px rgba(88, 28, 135, 0.08);
-  }
+/* --- Shared primitives: keep every page visually consistent --- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.625rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
-@keyframes chaos-heat-shimmer {
-  0% {
-    opacity: 0.12;
-    transform: scale(1);
-    backdrop-filter: blur(12px) brightness(1);
-  }
-  50% {
-    opacity: 0.18;
-    transform: scale(1.01);
-    backdrop-filter: blur(16px) brightness(1.04);
-  }
-  100% {
-    opacity: 0.14;
-    transform: scale(1);
-    backdrop-filter: blur(14px) brightness(1.02);
-  }
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
-.chaos-root.chaos-cpu-burn {
-  position: relative;
-  isolation: isolate;
-  animation: chaos-pulse-glow 2.2s ease-in-out infinite;
+.btn-primary {
+  background-color: var(--color-terracotta);
+  color: #fff;
 }
 
-.chaos-heat-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 2147483645;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 25% 15%, rgba(192, 132, 252, 0.14), transparent 42%),
-    radial-gradient(circle at 78% 88%, rgba(167, 139, 250, 0.12), transparent 38%),
-    radial-gradient(circle at 50% 50%, rgba(147, 51, 234, 0.08), transparent 55%);
-  animation: chaos-heat-shimmer 1.4s ease-in-out infinite alternate;
-  mix-blend-mode: overlay;
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-terracotta-dark);
 }
 
-/* --- /landing: motion kept for flavor; no hue-rainbow cycling --- */
-@keyframes landing-bg-pan {
-  0% {
-    background-position: 0% 0%;
-  }
-  50% {
-    background-position: 100% 80%;
-  }
-  100% {
-    background-position: 0% 100%;
-  }
+.btn-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  border: 1px solid var(--color-line);
 }
 
-@keyframes landing-wobble {
-  0%,
-  100% {
-    transform: rotate(-2.5deg) scale(1);
-  }
-  50% {
-    transform: rotate(3deg) scale(1.04);
-  }
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-cream);
 }
 
-@keyframes landing-jitter {
-  0% {
-    transform: translate(0, 0) skewX(0deg);
-  }
-  20% {
-    transform: translate(3px, -4px) skewX(-1deg);
-  }
-  40% {
-    transform: translate(-4px, 2px) skewX(1.2deg);
-  }
-  60% {
-    transform: translate(2px, 3px) skewX(-0.5deg);
-  }
-  80% {
-    transform: translate(-2px, -2px) skewX(0.8deg);
-  }
-  100% {
-    transform: translate(0, 0) skewX(0deg);
-  }
+.btn-ghost {
+  background-color: transparent;
+  color: var(--color-muted);
 }
 
-@keyframes landing-pulse-glow {
-  0%,
-  100% {
-    text-shadow:
-      0 0 10px rgba(232, 121, 249, 0.45),
-      0 0 22px rgba(168, 85, 247, 0.28);
-  }
-  50% {
-    text-shadow:
-      0 0 14px rgba(232, 121, 249, 0.55),
-      0 0 28px rgba(168, 85, 247, 0.35);
-  }
+.btn-ghost:hover:not(:disabled) {
+  color: var(--color-ink);
 }
 
-@keyframes landing-spin-slow {
-  from {
-    transform: rotate(0deg) scale(1);
-  }
-  to {
-    transform: rotate(360deg) scale(1.08);
-  }
+.btn-danger {
+  background-color: transparent;
+  color: #b3261e;
+  border: 1px solid #f0d4d1;
 }
 
-@keyframes landing-border-rave {
-  0%,
-  100% {
-    box-shadow:
-      inset 0 0 40px rgba(168, 85, 247, 0.22),
-      0 0 18px rgba(168, 85, 247, 0.28);
+.btn-danger:hover:not(:disabled) {
+  background-color: #fdf2f1;
+}
+
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 0.875rem;
+}
+
+.label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-muted);
+  margin-bottom: 0.375rem;
+}
+
+.input {
+  width: 100%;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--color-ink);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.input::placeholder {
+  color: var(--color-subtle);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-terracotta);
+  box-shadow: 0 0 0 3px rgba(192, 86, 47, 0.12);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  background-color: var(--color-sage-soft);
+  color: var(--color-sage);
+  padding: 0.125rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.alert-error {
+  border-radius: 0.625rem;
+  background-color: #fdf2f1;
+  border: 1px solid #f0d4d1;
+  color: #93221b;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.875rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
-  50% {
-    box-shadow:
-      inset 0 0 52px rgba(168, 85, 247, 0.28),
-      0 0 24px rgba(168, 85, 247, 0.34);
-  }
-}
-
-@keyframes landing-blur-breathe {
-  0%,
-  100% {
-    backdrop-filter: blur(8px) brightness(1);
-    opacity: 0.85;
-  }
-  50% {
-    backdrop-filter: blur(14px) brightness(1.06);
-    opacity: 0.92;
-  }
-}
-
-@keyframes landing-scale-yuck {
-  0%,
-  100% {
-    transform: scale(1) rotate(0deg);
-  }
-  25% {
-    transform: scale(1.12) rotate(-2deg);
-  }
-  75% {
-    transform: scale(0.92) rotate(2deg);
-  }
-}
-
-@keyframes landing-shake-x {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-6px);
-  }
-  75% {
-    transform: translateX(6px);
-  }
-}
-
-.landing-root {
-  background-size: 220% 220%;
-  animation: landing-bg-pan 5s ease-in-out infinite;
-  will-change: background-position;
-}
-
-.landing-wobble {
-  animation: landing-wobble 0.65s ease-in-out infinite;
-  will-change: transform;
-}
-
-.landing-jitter {
-  animation: landing-jitter 0.45s steps(2, end) infinite;
-  will-change: transform;
-}
-
-.landing-title-glow {
-  animation: landing-pulse-glow 3.5s ease-in-out infinite;
-  will-change: text-shadow;
-}
-
-.landing-orbit {
-  animation: landing-spin-slow 14s linear infinite;
-  will-change: transform;
-}
-
-.landing-card-rave {
-  animation: landing-border-rave 3.5s ease-in-out infinite;
-  will-change: box-shadow;
-}
-
-.landing-blur-layer {
-  animation: landing-blur-breathe 2.8s ease-in-out infinite;
-  will-change: backdrop-filter, opacity;
-}
-
-.landing-cta-pulse {
-  animation: landing-scale-yuck 0.9s ease-in-out infinite;
-  will-change: transform;
-}
-
-.landing-footer-shake {
-  animation: landing-shake-x 0.35s ease-in-out infinite;
-  will-change: transform;
-}
-
-@keyframes landing-soft-flicker {
-  0%,
-  40% {
-    opacity: 1;
-    filter: brightness(1);
-  }
-  50% {
-    opacity: 0.72;
-    filter: brightness(1.25);
-  }
-  60%,
-  100% {
-    opacity: 1;
-    filter: brightness(1);
-  }
-}
-
-.landing-blink {
-  animation: landing-soft-flicker 2.4s ease-in-out infinite;
-  will-change: opacity, filter;
 }

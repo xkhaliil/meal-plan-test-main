@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -13,7 +14,7 @@ async function main() {
   const alice = await prisma.user.create({
     data: {
       email: "alice@example.com",
-      password: "password123",
+      password: await bcrypt.hash("password123", 10),
       name: "Alice Johnson",
       plan: "pro",
     },
@@ -22,16 +23,16 @@ async function main() {
   const bob = await prisma.user.create({
     data: {
       email: "bob@example.com",
-      password: "bob2024",
+      password: await bcrypt.hash("bob2024", 10),
       name: "Bob Smith",
       plan: "free",
     },
   });
 
-  const charlie = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: "charlie@example.com",
-      password: "letmein",
+      password: await bcrypt.hash("letmein", 10),
       name: "Charlie Davis",
       plan: "free",
     },
@@ -473,7 +474,7 @@ async function main() {
     createdRecipes.push(recipe);
   }
 
-  const mealPlan1 = await prisma.mealPlan.create({
+  await prisma.mealPlan.create({
     data: {
       name: "Healthy Week",
       startDate: new Date("2026-04-06"),
@@ -531,7 +532,7 @@ async function main() {
     },
   });
 
-  const mealPlan2 = await prisma.mealPlan.create({
+  await prisma.mealPlan.create({
     data: {
       name: "Quick Meals",
       startDate: new Date("2026-04-13"),

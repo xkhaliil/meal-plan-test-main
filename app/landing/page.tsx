@@ -1,270 +1,271 @@
-"use client";
-
-import Link from "next/link";
 import ChefLogo from "@/app/components/ChefLogo";
-import { CookingGifBackdrop } from "@/app/components/CookingGifPlaster";
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 
-const JUNK_ORB_COUNT = 52;
+const HERO_DISHES = [
+  { src: "/images/recipes/grilled-salmon.jpg", alt: "Grilled salmon fillet with lemon" },
+  { src: "/images/recipes/miso-ramen.jpg", alt: "Bowl of miso ramen" },
+  { src: "/images/recipes/pasta-carbonara.jpg", alt: "Spaghetti carbonara" },
+  { src: "/images/recipes/chicken-tikka.jpg", alt: "Chicken tikka masala with rice" },
+];
+
+const STEPS = [
+  {
+    number: "01",
+    title: "Build your catalog",
+    body: "Save the meals you actually cook. Ingredients, timings, and tags stay in one place instead of scattered across screenshots and bookmarks.",
+  },
+  {
+    number: "02",
+    title: "Ask the Recipe Bot",
+    body: "Out of ideas? Describe a craving or a dietary constraint and it writes a complete recipe — photo included — straight into your catalog.",
+  },
+  {
+    number: "03",
+    title: "Plan the week",
+    body: "Drop recipes into breakfast, lunch, and dinner across a seven-day grid. Decide once, then just cook.",
+  },
+];
+
+const FEATURES = [
+  {
+    title: "Everything in one catalog",
+    body: "Ingredients, prep and cook times, servings, cuisine, and dietary tags — structured, searchable, yours.",
+  },
+  {
+    title: "A week at a glance",
+    body: "Twenty-one slots, filled from recipes you already trust. No more 6pm improvising.",
+  },
+  {
+    title: "AI that writes real recipes",
+    body: "The Recipe Bot returns structured recipes, not walls of chat text — so every idea is saved properly and ready to schedule.",
+  },
+  {
+    title: "Cook for the right number",
+    body: "Servings and calories travel with each recipe, so a plan for two never turns into a plan for six.",
+  },
+];
 
 export default function LandingPage() {
-  const [tick, setTick] = useState(0);
-  const [tickB, setTickB] = useState(0);
-
-  useEffect(() => {
-    const a = window.setInterval(() => setTick((t) => t + 1), 28);
-    const b = window.setInterval(() => setTickB((t) => t + 1), 41);
-    return () => {
-      window.clearInterval(a);
-      window.clearInterval(b);
-    };
-  }, []);
-
   return (
-    <div
-      className="landing-root relative min-h-screen overflow-x-hidden text-fuchsia-100"
-      style={{
-        background:
-          "linear-gradient(160deg, #0d0221 0%, #3b0764 25%, #7c3aed 45%, #a855f7 55%, #2e1065 78%, #1e0538 100%)",
-        fontFamily: "Georgia, 'Comic Sans MS', Papyrus, serif",
-        boxShadow: "inset 0 0 120px rgba(191, 0, 255, 0.45)",
-      }}
-    >
-      {/* Fixed blur overlay: animates expensive backdrop-filter */}
-      <div
-        className="landing-blur-layer pointer-events-none fixed inset-0 z-[5]"
-        style={{
-          background:
-            "radial-gradient(circle at 30% 20%, rgba(217,70,239,0.15), transparent 50%), radial-gradient(circle at 70% 90%, rgba(124,58,237,0.2), transparent 45%)",
-        }}
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none fixed inset-0 z-[4] opacity-25 mix-blend-soft-light"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 60% at 50% 20%, rgba(192, 38, 211, 0.2), transparent 55%), radial-gradient(ellipse 70% 50% at 80% 75%, rgba(124, 58, 237, 0.15), transparent 50%)",
-        }}
-        aria-hidden
-      />
-
-      <CookingGifBackdrop stackClass="z-[6]" />
-
-      {/* Junk orbs: dozens of inline styles recomputed every tick */}
-      {Array.from({ length: JUNK_ORB_COUNT }, (_, i) => (
-        <span
-          key={i}
-          className="pointer-events-none fixed z-[3] rounded-full bg-fuchsia-400/25"
-          style={{
-            width: 6 + (i % 5) * 3,
-            height: 6 + (i % 5) * 3,
-            left: `${48 + Math.sin(tick * 0.11 + i * 0.7) * 42}%`,
-            top: `${48 + Math.cos(tickB * 0.09 + i * 0.55) * 44}%`,
-            boxShadow: `0 0 ${8 + (i % 4) * 4}px rgba(217, 70, 239, 0.5)`,
-            transform: `rotate(${tick * 2 + i * 13}deg)`,
-            willChange: "left, top, transform, box-shadow",
-          }}
-          aria-hidden
-        />
-      ))}
-
-      <header
-        className="landing-jitter relative z-10 flex flex-wrap items-end justify-between gap-4 px-3 py-6 md:px-12"
-        style={{
-          borderBottom: "8px dotted #e879f9",
-          boxShadow: "0 4px 24px rgba(216, 180, 254, 0.6)",
-        }}
-      >
-        <div className="landing-wobble flex items-center gap-1">
-          <span className="landing-orbit inline-flex">
-            <ChefLogo size={72} href={null} priority />
-          </span>
-          <span
-            className="landing-title-glow font-black uppercase tracking-widest"
-            style={{
-              fontSize: "clamp(1.4rem, 5vw, 3rem)",
-              lineHeight: 0.9,
-              color: "#f0abfc",
-            }}
-          >
-            Landing
-          </span>
-        </div>
-        <nav className="flex flex-col items-end gap-2 text-right text-sm">
-          <a
-            href="#stuff"
-            className="landing-footer-shake text-fuchsia-200 underline decoration-wavy decoration-fuchsia-400"
-            style={{ textShadow: "0 0 8px #e879f9" }}
-          >
-            Stuff
-          </a>
-          <a
-            href="#more"
-            className="landing-cta-pulse bg-fuchsia-500 px-2 py-1 font-bold text-purple-950"
-            style={{ boxShadow: "0 0 16px #d946ef" }}
-          >
-            More
-          </a>
-          <span className="landing-blink cursor-default text-purple-300/70 line-through">Enterprise</span>
+    <div className="min-h-screen">
+      <header className="border-b border-line">
+        <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+          <div className="flex items-center gap-2.5">
+            <ChefLogo size={28} href={null} priority />
+            <span className="whitespace-nowrap font-display text-lg font-semibold text-ink">
+              MealPlan Pro
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link href="/login" className="btn btn-ghost">
+              Sign in
+            </Link>
+            <Link href="/register" className="btn btn-primary">
+              Get started
+            </Link>
+          </div>
         </nav>
       </header>
 
-      <main className="relative z-10 px-2 pb-24 pt-8 md:px-8">
-        <section className="relative mx-auto max-w-4xl">
-          <p
-            className="landing-jitter mb-6 text-center font-serif text-lg text-purple-200"
-            style={{ marginLeft: "18%", marginRight: "-5%", maxWidth: "40rem" }}
-          >
-            Meal plans, recipes, and AI chat — without pretending the homepage has to open with
-            &ldquo;welcome.&rdquo;
-          </p>
-
-          <h1
-            className="landing-wobble mb-4 bg-violet-950 px-4 py-2 font-sans text-2xl font-bold shadow-lg"
-            style={{
-              width: "fit-content",
-              marginLeft: `${58 + Math.sin(tick * 0.08) * 4}%`,
-              color: "#fae8ff",
-              textShadow: "0 0 12px #e879f9, 0 0 28px #a855f7",
-              border: "2px solid #d946ef",
-            }}
-          >
-            WE DO THINGS WITH MEALS
-          </h1>
-
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:items-start">
-            <div
-              className="landing-card-rave border-4 border-fuchsia-400 bg-purple-900/50 p-8 text-center backdrop-blur-sm md:col-span-2"
-              style={{ borderRadius: "3px 40px 8px 90px" }}
-            >
-              <h2
-                className="landing-title-glow"
-                style={{ fontSize: "11px", textTransform: "uppercase", color: "#e9d5ff" }}
-              >
-                Why us maybe
-              </h2>
-              <p className="mt-3 text-left text-sm leading-tight text-purple-100/90 md:text-base">
-                Our platform leverages synergy between culinary vectors and AI-adjacent experiences.
-                Users enjoy outcomes. Some outcomes involve recipes. Others involve thinking about
-                recipes. It depends on the moon phase.
+      <main>
+        {/* Hero */}
+        <section className="mx-auto max-w-6xl px-6 pb-16 pt-20">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-terracotta">
+                Meal planning, minus the guesswork
+              </p>
+              <h1 className="mt-4 text-5xl font-semibold leading-[1.08] text-ink sm:text-6xl">
+                Decide what&apos;s for dinner{" "}
+                <span className="text-terracotta">once a week.</span>
+              </h1>
+              <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted">
+                MealPlan Pro keeps every recipe you cook in one catalog, turns cravings
+                into new ones with AI, and lays the whole week out in a single grid —
+                so weeknights stop being a decision.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <Link href="/register" className="btn btn-primary px-6 py-3 text-base">
+                  Start planning free
+                </Link>
+                <Link href="/login" className="btn btn-secondary px-6 py-3 text-base">
+                  Sign in
+                </Link>
+              </div>
+              <p className="mt-4 text-sm text-subtle">
+                Free plan, no card required. Upgrade when you want unlimited AI.
               </p>
             </div>
-            <div
-              className="landing-cta-pulse relative -mt-4 self-center justify-self-end bg-fuchsia-600 p-4 md:mt-12"
-              style={{
-                left: `${10 + Math.sin(tickB * 0.12) * 6}px`,
-                top: `${-28 + Math.cos(tick * 0.1) * 5}px`,
-                boxShadow: "0 0 20px #c026d3, inset 0 0 20px rgba(250, 232, 255, 0.2)",
-              }}
-            >
-              <p className="w-32 rotate-3 text-xs font-bold text-purple-950">
-                FAST* (*terms: not a guarantee)
-              </p>
+
+            <div className="grid grid-cols-2 gap-4">
+              {HERO_DISHES.map((dish, i) => (
+                <div
+                  key={dish.src}
+                  className={`relative h-52 overflow-hidden rounded-xl border border-line sm:h-60 ${
+                    i % 2 === 1 ? "mt-8" : ""
+                  }`}
+                >
+                  <Image
+                    src={dish.src}
+                    alt={dish.alt}
+                    fill
+                    sizes="(max-width: 1024px) 50vw, 25vw"
+                    className="object-cover"
+                    priority={i < 2}
+                  />
+                </div>
+              ))}
             </div>
-          </div>
-
-          <div className="mt-16 flex flex-wrap items-center justify-around gap-6 opacity-95">
-            <button
-              type="button"
-              className="landing-wobble border-2 border-fuchsia-300 bg-purple-950 px-8 py-4 text-xl font-black text-fuchsia-300 shadow-[6px_6px_0_#86198f]"
-              style={{
-                fontFamily: "Impact, sans-serif",
-                textShadow: "0 0 10px #e879f9",
-              }}
-            >
-              GET STARTED (?)
-            </button>
-            <a
-              href="/login"
-              className="landing-jitter text-sm text-purple-200 underline decoration-wavy decoration-fuchsia-400 underline-offset-4"
-              style={{ textShadow: "0 0 6px #c084fc" }}
-            >
-              or log in if you want
-            </a>
-            <button
-              type="button"
-              className="landing-orbit scale-75 bg-gradient-to-r from-purple-600 to-fuchsia-500 px-3 py-1 text-[10px] text-white"
-              style={{ boxShadow: "0 0 12px #a855f7" }}
-            >
-              LEARN MORE — same page
-            </button>
-          </div>
-
-          <section
-            id="stuff"
-            className="landing-card-rave mt-20 border-t-8 border-fuchsia-500 pt-10"
-            style={{ boxShadow: "0 -8px 32px rgba(217, 70, 239, 0.25)" }}
-          >
-            <h3
-              className="landing-title-glow mb-8 w-3/4 font-mono text-4xl text-fuchsia-300"
-              style={{
-                marginLeft: "22%",
-                lineHeight: "0.7",
-              }}
-            >
-              Features
-              <br />
-              <span className="text-lg font-normal text-purple-300">(selection)</span>
-            </h3>
-            <ul className="columns-1 gap-12 space-y-6 text-sm text-purple-100 md:columns-2" style={{ columnGap: "4rem" }}>
-              <li className="break-inside-avoid pl-6" style={{ listStyle: "hebrew" }}>
-                <strong className="text-fuchsia-400">Smart</strong> — we use computers
-              </li>
-              <li className="break-inside-avoid" style={{ paddingLeft: "3rem", listStyle: "cjk-ideographic" }}>
-                Cloud-ready (your kitchen might also be a cloud metaphorically)
-              </li>
-              <li className="break-inside-avoid text-center md:text-left">
-                24/7 except when we sleep
-              </li>
-              <li className="break-inside-avoid -ml-2 max-w-xs text-xs leading-relaxed text-purple-200/80">
-                GDPR-friendly-ish — we have heard of privacy. Landing respects the concept of data
-                in the abstract.
-              </li>
-            </ul>
-          </section>
-
-          <section
-            id="more"
-            className="landing-blur-layer relative z-10 mt-24 rounded-lg border-2 border-purple-400 bg-violet-950/80 p-6 md:p-10"
-            style={{ boxShadow: "inset 0 0 80px rgba(168, 85, 247, 0.5), 0 0 40px rgba(192, 38, 211, 0.3)" }}
-          >
-            <div
-              className="landing-orbit absolute -right-4 top-1/2 z-0 h-32 w-32 rounded-full bg-fuchsia-500 opacity-50"
-              style={{
-                transform: `translateY(-50%) rotate(${12 + tick}deg)`,
-                boxShadow: "0 0 30px #e879f9",
-              }}
-              aria-hidden
-            />
-            <blockquote className="relative z-10 text-center italic text-purple-200">
-              &ldquo;It was an experience.&rdquo;
-              <footer className="mt-2 not-italic text-xs text-fuchsia-300/80">— Someone, probably</footer>
-            </blockquote>
-          </section>
-
-          <div
-            className="landing-footer-shake mt-16 flex justify-between gap-4 text-[0.65rem] uppercase tracking-tighter text-fuchsia-200/90"
-            style={{ letterSpacing: "-0.05em", textShadow: "0 0 8px #a855f7" }}
-          >
-            <span>© 20XX Landing</span>
-            <span>Not financial advice</span>
-            <span>Patent pending (no)</span>
-          </div>
-
-          <div className="mt-8 text-center">
-            <Link
-              href="/login"
-              className="landing-cta-pulse inline-block bg-fuchsia-600 px-6 py-2 font-semibold text-purple-950"
-              style={{
-                borderRadius: "999px 0 999px 0",
-                boxShadow: "0 0 20px #d946ef, 0 0 40px #7c3aed",
-              }}
-            >
-              Okay go to login
-            </Link>
           </div>
         </section>
+
+        {/* How it works */}
+        <section className="border-y border-line bg-surface">
+          <div className="mx-auto max-w-6xl px-6 py-20">
+            <h2 className="max-w-xl text-3xl font-semibold text-ink">
+              Three steps between you and a planned week
+            </h2>
+            <div className="mt-12 grid gap-10 md:grid-cols-3">
+              {STEPS.map((step) => (
+                <div key={step.number}>
+                  <span className="font-display text-sm font-semibold text-terracotta">
+                    {step.number}
+                  </span>
+                  <h3 className="mt-3 text-xl font-semibold text-ink">{step.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted">{step.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Features */}
+        <section className="mx-auto max-w-6xl px-6 py-20">
+          <h2 className="max-w-xl text-3xl font-semibold text-ink">
+            Built around how people actually cook
+          </h2>
+          <div className="mt-12 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2">
+            {FEATURES.map((feature) => (
+              <div key={feature.title} className="bg-surface p-8">
+                <h3 className="text-lg font-semibold text-ink">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{feature.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Pricing */}
+        <section className="border-t border-line bg-surface">
+          <div className="mx-auto max-w-4xl px-6 py-20">
+            <div className="text-center">
+              <h2 className="text-3xl font-semibold text-ink">Simple pricing</h2>
+              <p className="mt-2 text-sm text-muted">
+                Start free. Upgrade only if you want the AI to do the heavy lifting.
+              </p>
+            </div>
+
+            <div className="mt-12 grid gap-6 sm:grid-cols-2">
+              <div className="card p-8">
+                <h3 className="text-lg font-semibold text-ink">Free</h3>
+                <p className="mt-1 text-sm text-muted">
+                  Everything you need to plan by hand.
+                </p>
+                <ul className="mt-6 space-y-2.5 text-sm text-ink">
+                  <li className="flex gap-2">
+                    <span className="text-sage" aria-hidden>
+                      ✓
+                    </span>
+                    Unlimited recipes and meal plans
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-sage" aria-hidden>
+                      ✓
+                    </span>
+                    Full weekly planner
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-sage" aria-hidden>
+                      ✓
+                    </span>
+                    5 Recipe Bot messages per day
+                  </li>
+                </ul>
+                <Link href="/register" className="btn btn-secondary mt-8 w-full">
+                  Get started
+                </Link>
+              </div>
+
+              <div className="card border-terracotta/40 bg-terracotta-soft p-8">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-semibold text-ink">Pro</h3>
+                  <span className="rounded-full bg-terracotta px-3 py-1 text-xs font-medium text-white">
+                    Recommended
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-muted">
+                  For anyone leaning on the Recipe Bot weekly.
+                </p>
+                <ul className="mt-6 space-y-2.5 text-sm text-ink">
+                  <li className="flex gap-2">
+                    <span className="text-sage" aria-hidden>
+                      ✓
+                    </span>
+                    Everything in Free
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-sage" aria-hidden>
+                      ✓
+                    </span>
+                    Unlimited Recipe Bot messages
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-sage" aria-hidden>
+                      ✓
+                    </span>
+                    AI-generated photography for new recipes
+                  </li>
+                </ul>
+                <Link href="/register" className="btn btn-primary mt-8 w-full">
+                  Start with Pro
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Closing CTA */}
+        <section className="mx-auto max-w-3xl px-6 py-24 text-center">
+          <h2 className="text-4xl font-semibold leading-tight text-ink">
+            Your next seven dinners, already decided.
+          </h2>
+          <p className="mx-auto mt-4 max-w-lg text-base text-muted">
+            Join and plan your first week in a few minutes.
+          </p>
+          <Link href="/register" className="btn btn-primary mt-8 px-7 py-3 text-base">
+            Create your free account
+          </Link>
+        </section>
       </main>
+
+      <footer className="border-t border-line">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8">
+          <div className="flex items-center gap-2">
+            <ChefLogo size={22} href={null} />
+            <span className="text-sm text-muted">
+              © {new Date().getFullYear()} MealPlan Pro
+            </span>
+          </div>
+          <div className="flex gap-6 text-sm text-muted">
+            <Link href="/login" className="hover:text-ink">
+              Sign in
+            </Link>
+            <Link href="/register" className="hover:text-ink">
+              Create account
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
+
+  if (typeof email !== "string" || typeof password !== "string") {
+    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+  }
 
   const user = await prisma.user.findUnique({ where: { email } });
 
@@ -11,14 +16,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
-  if (user.password !== password) {
-    const mockOtherUserEmail = "legacy.import+billing@chef-seed.mock";
-    return NextResponse.json(
-      {
-        error: `You can't use this password — it's already in use by another user (${mockOtherUserEmail}). Please choose a different password.`,
-      },
-      { status: 401 }
-    );
+  const passwordMatches = await bcrypt.compare(password, user.password);
+  if (!passwordMatches) {
+    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
   const token = signToken({ userId: user.id, email: user.email });

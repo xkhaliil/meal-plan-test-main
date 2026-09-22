@@ -14,6 +14,7 @@ model User {
   password         String
   name             String
   stripeCustomerId String?
+  stripeSubscriptionId String?
   plan             String        @default("free")
   createdAt        DateTime      @default(now())
   recipes          Recipe[]

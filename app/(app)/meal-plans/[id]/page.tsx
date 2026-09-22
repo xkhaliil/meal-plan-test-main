@@ -1,7 +1,6 @@
 "use client";
 
-import ChefLogo from "@/app/components/ChefLogo";
-import { CookingGifBackdrop } from "@/app/components/CookingGifPlaster";
+import Link from "next/link";
 import { useState, useEffect, use } from "react";
 
 interface MealPlanRecipe {
@@ -29,7 +28,15 @@ interface RecipeOption {
   title: string;
 }
 
-const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+const DAYS = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+];
 const MEAL_TYPES = ["breakfast", "lunch", "dinner"];
 
 export default function MealPlanDetailPage({
@@ -38,12 +45,14 @@ export default function MealPlanDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  console.log("[CHAOS render] MealPlanDetailPage", id);
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
   const [recipes, setRecipes] = useState<RecipeOption[]>([]);
   const [selectedDay, setSelectedDay] = useState("monday");
   const [selectedMealType, setSelectedMealType] = useState("breakfast");
   const [selectedRecipeId, setSelectedRecipeId] = useState("");
+  const [error, setError] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -51,17 +60,23 @@ export default function MealPlanDetailPage({
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
-      .then((data) => setMealPlan(data.mealPlan));
+      .then((data) => {
+        if (data.mealPlan) setMealPlan(data.mealPlan);
+        else setLoadFailed(true);
+      })
+      .catch(() => setLoadFailed(true));
 
     fetch("/api/recipes")
       .then((r) => r.json())
       .then((data) => {
-        setRecipes(data.recipes);
-        if (data.recipes.length > 0) setSelectedRecipeId(data.recipes[0].id);
+        setRecipes(data.recipes ?? []);
+        if (data.recipes?.length > 0) setSelectedRecipeId(data.recipes[0].id);
       });
   }, [id]);
 
   async function handleAddRecipe() {
+    setError("");
+    setAdding(true);
     const token = localStorage.getItem("token");
 
     const res = await fetch(`/api/meal-plans/${id}`, {
@@ -76,42 +91,89 @@ export default function MealPlanDetailPage({
         recipeId: selectedRecipeId,
       }),
     });
+    setAdding(false);
 
-    if (res.ok) {
-      const token2 = localStorage.getItem("token");
-      const updated = await fetch(`/api/meal-plans/${id}`, {
-        headers: { Authorization: `Bearer ${token2}` },
-      });
-      const data = await updated.json();
-      setMealPlan(data.mealPlan);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Could not add that recipe");
+      return;
     }
+
+    const updated = await fetch(`/api/meal-plans/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await updated.json();
+    setMealPlan(data.mealPlan);
   }
 
-  if (!mealPlan) return null;
+  if (loadFailed) {
+    return (
+      <div className="mx-auto max-w-2xl px-6 py-24 text-center">
+        <h1 className="text-2xl font-semibold text-ink">Meal plan unavailable</h1>
+        <p className="mt-2 text-sm text-muted">
+          This plan doesn&apos;t exist, or it belongs to another account.
+        </p>
+        <Link href="/meal-plans" className="btn btn-secondary mt-6">
+          Back to meal plans
+        </Link>
+      </div>
+    );
+  }
+
+  if (!mealPlan) {
+    return (
+      <div className="mx-auto max-w-6xl px-6 py-10">
+        <div className="h-9 w-64 animate-pulse rounded-lg bg-line/60" />
+        <div className="mt-8 h-24 w-full animate-pulse rounded-xl bg-line/50" />
+      </div>
+    );
+  }
+
+  const totalMeals = mealPlan.recipes.length;
 
   return (
-    <div className="relative min-h-screen">
-      <div className="absolute inset-0 z-0 bg-gray-50" aria-hidden />
-      <CookingGifBackdrop position="absolute" stackClass="z-[1]" />
-      <div className="relative z-10 p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-2 font-sans flex items-center gap-2 flex-wrap">
-        <ChefLogo size={36} />
-        {mealPlan.name}
-      </h1>
-      <p className="text-sm text-gray-400 mb-6">
-        {new Date(mealPlan.startDate).toLocaleDateString()} -{" "}
-        {new Date(mealPlan.endDate).toLocaleDateString()}
-      </p>
+    <div className="mx-auto max-w-6xl px-6 py-10">
+      <Link
+        href="/meal-plans"
+        className="text-sm text-muted transition-colors hover:text-ink"
+      >
+        ← All meal plans
+      </Link>
 
-      <div className="bg-white border border-gray-200 p-4 rounded mb-6">
-        <h2 className="text-lg font-bold text-gray-700 mb-3">Add Recipe</h2>
-        <div className="flex gap-4 items-end flex-wrap">
+      <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold text-ink">{mealPlan.name}</h1>
+          <p className="mt-1 text-sm text-muted">
+            {new Date(mealPlan.startDate).toLocaleDateString(undefined, {
+              month: "long",
+              day: "numeric",
+            })}{" "}
+            –{" "}
+            {new Date(mealPlan.endDate).toLocaleDateString(undefined, {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}
+            {" · "}
+            {totalMeals} {totalMeals === 1 ? "meal" : "meals"} planned
+          </p>
+        </div>
+      </div>
+
+      <section className="card mt-8 p-5">
+        <h2 className="text-sm font-semibold text-ink">Add a meal</h2>
+        {error && <div className="alert-error mt-3">{error}</div>}
+
+        <div className="mt-4 flex flex-wrap items-end gap-3">
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Day</label>
+            <label className="label" htmlFor="add-day">
+              Day
+            </label>
             <select
+              id="add-day"
               value={selectedDay}
               onChange={(e) => setSelectedDay(e.target.value)}
-              className="border border-gray-300 p-2 text-sm rounded"
+              className="input"
             >
               {DAYS.map((d) => (
                 <option key={d} value={d}>
@@ -120,12 +182,16 @@ export default function MealPlanDetailPage({
               ))}
             </select>
           </div>
+
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Meal</label>
+            <label className="label" htmlFor="add-meal">
+              Meal
+            </label>
             <select
+              id="add-meal"
               value={selectedMealType}
               onChange={(e) => setSelectedMealType(e.target.value)}
-              className="border border-gray-300 p-2 text-sm rounded"
+              className="input"
             >
               {MEAL_TYPES.map((m) => (
                 <option key={m} value={m}>
@@ -134,12 +200,16 @@ export default function MealPlanDetailPage({
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Recipe</label>
+
+          <div className="min-w-56 flex-1">
+            <label className="label" htmlFor="add-recipe">
+              Recipe
+            </label>
             <select
+              id="add-recipe"
               value={selectedRecipeId}
               onChange={(e) => setSelectedRecipeId(e.target.value)}
-              className="border border-gray-300 p-2 text-sm rounded"
+              className="input"
             >
               {recipes.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -148,39 +218,53 @@ export default function MealPlanDetailPage({
               ))}
             </select>
           </div>
+
           <button
             onClick={handleAddRecipe}
-            className="bg-lime-500 text-black px-4 py-2 text-sm font-bold"
+            disabled={adding || !selectedRecipeId}
+            className="btn btn-primary"
           >
-            Add
+            {adding ? "Adding..." : "Add to plan"}
           </button>
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-7 gap-2">
-        {DAYS.map((day) => (
-          <div key={day} className="bg-white border border-gray-200 p-3 rounded min-h-[200px]">
-            <h3 className="text-sm font-bold text-gray-700 mb-2 capitalize">
-              {day}
-            </h3>
-            {MEAL_TYPES.map((meal) => {
-              const items = mealPlan.recipes.filter(
-                (r) => r.day === day && r.mealType === meal
-              );
-              return (
-                <div key={meal} className="mb-2">
-                  <p className="text-xs text-gray-400 capitalize">{meal}</p>
-                  {items.map((item) => (
-                    <p key={item.id} className="text-xs text-purple-700 truncate">
-                      {item.recipe.title}
-                    </p>
-                  ))}
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+        {DAYS.map((day) => {
+          const dayMeals = mealPlan.recipes.filter((r) => r.day === day);
+          return (
+            <div key={day} className="card flex flex-col p-4">
+              <h3 className="font-display text-sm font-semibold capitalize text-ink">
+                {day}
+              </h3>
+              <div className="mt-3 flex flex-1 flex-col gap-3">
+                {MEAL_TYPES.map((meal) => {
+                  const items = dayMeals.filter((r) => r.mealType === meal);
+                  return (
+                    <div key={meal}>
+                      <p className="text-[0.65rem] uppercase tracking-wide text-subtle">
+                        {meal}
+                      </p>
+                      {items.length === 0 ? (
+                        <p className="mt-0.5 text-xs text-line">—</p>
+                      ) : (
+                        items.map((item) => (
+                          <Link
+                            key={item.id}
+                            href={`/recipes/${item.recipe.id}`}
+                            className="mt-1 block rounded-md bg-terracotta-soft px-2 py-1 text-xs leading-snug text-terracotta hover:bg-terracotta hover:text-white"
+                          >
+                            {item.recipe.title}
+                          </Link>
+                        ))
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

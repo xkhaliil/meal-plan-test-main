@@ -1,7 +1,13 @@
 import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
 
-const JWT_SECRET = "super-secret-key-123";
+const JWT_SECRET: string = (() => {
+  const value = process.env.JWT_SECRET;
+  if (!value) {
+    throw new Error("JWT_SECRET environment variable is not set.");
+  }
+  return value;
+})();
 
 export function signToken(payload: { userId: string; email: string }) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });

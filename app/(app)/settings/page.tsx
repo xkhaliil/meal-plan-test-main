@@ -1,10 +1,6 @@
 "use client";
 
-import ChefLogo from "@/app/components/ChefLogo";
-import { CookingGifBackdrop } from "@/app/components/CookingGifPlaster";
 import { useState, useEffect } from "react";
-
-const STRIPE_KEY = "sk_test_fake_51ABC123DEF456_replace_me";
 
 interface User {
   id: string;
@@ -13,35 +9,54 @@ interface User {
   plan: string;
 }
 
+const PRO_FEATURES = [
+  "Unlimited Recipe Bot messages",
+  "AI-generated photos for every recipe",
+  "Unlimited meal plans",
+];
+
 export default function SettingsPage() {
-  console.log("[CHAOS render] SettingsPage");
   const [user, setUser] = useState<User | null>(null);
+  const [cancelError, setCancelError] = useState("");
+  const [busy, setBusy] = useState(false);
 
+  // Read the plan from the API rather than the cached localStorage copy, which
+  // goes stale as soon as a subscription changes.
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-
     const token = localStorage.getItem("token");
-    if (token) {
-      fetch("/api/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
+    if (!token) return;
+
+    fetch("/api/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user) setUser(data.user);
       })
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.user) setUser(data.user);
-        });
-    }
+      .catch(() => {});
   }, []);
 
   async function handleCancelSubscription() {
-    console.log("Cancelling subscription with key:", STRIPE_KEY.slice(0, 10));
-    await fetch("/api/stripe/cancel", { method: "POST" });
-    alert("Your subscription has been cancelled.");
+    setCancelError("");
+    setBusy(true);
+    const token = localStorage.getItem("token");
+    const res = await fetch("/api/stripe/cancel", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json().catch(() => ({}));
+    setBusy(false);
+
+    if (!res.ok) {
+      setCancelError(data.error || `Could not cancel subscription (${res.status}).`);
+      return;
+    }
+
+    setUser((prev) => (prev ? { ...prev, plan: "free" } : prev));
   }
 
   async function handleUpgrade() {
+    setBusy(true);
     const token = localStorage.getItem("token");
     const res = await fetch("/api/stripe/checkout", {
       method: "POST",
@@ -57,116 +72,122 @@ export default function SettingsPage() {
     } catch {
       /* non-JSON error body */
     }
+    setBusy(false);
+
     if (!res.ok) {
-      alert(data.error ?? `Could not start billing (${res.status}).`);
+      setCancelError(data.error ?? `Could not start checkout (${res.status}).`);
       return;
     }
     if (data.url) {
       window.location.href = data.url;
     } else {
-      alert("Billing did not return a link.");
+      setCancelError("Billing did not return a checkout link.");
     }
   }
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-2xl px-6 py-10">
+        <div className="h-9 w-48 animate-pulse rounded-lg bg-line/60" />
+        <div className="mt-8 h-32 w-full animate-pulse rounded-xl bg-line/50" />
+      </div>
+    );
+  }
+
+  const isPro = user.plan === "pro";
 
   return (
-    <div className="relative min-h-screen font-serif">
-      <div className="absolute inset-0 z-0 bg-yellow-50" aria-hidden />
-      <CookingGifBackdrop position="absolute" stackClass="z-[1]" />
-      <div className="relative z-10 p-8">
-      <div className="w-[800px]">
-        <h1 className="text-4xl font-bold text-red-700 mb-8 flex items-center gap-3">
-          <ChefLogo size={44} />
-          Account Settings
-        </h1>
+    <div className="mx-auto max-w-2xl px-6 py-10">
+      <h1 className="text-3xl font-semibold text-ink">Settings</h1>
+      <p className="mt-1 text-sm text-muted">Manage your account and plan.</p>
 
-        <div className="bg-white border-2 border-orange-400 p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Profile</h2>
-          <div className="space-y-3">
-            <div>
-              <span className="text-sm text-gray-500">Name:</span>{" "}
-              <span className="font-bold">{user.name}</span>
-            </div>
-            <div>
-              <span className="text-sm text-gray-500">Email:</span>{" "}
-              <span className="font-bold">{user.email}</span>
-            </div>
+      <section className="card mt-8 p-6">
+        <h2 className="text-lg font-semibold text-ink">Profile</h2>
+        <dl className="mt-4 space-y-3 text-sm">
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted">Name</dt>
+            <dd className="font-medium text-ink">{user.name}</dd>
           </div>
-        </div>
-
-        <div className="bg-white border-2 border-purple-400 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-purple-900 mb-1">
-            Billing &amp; entitlements
-          </h2>
-          <p className="text-xs text-gray-500 mb-4 italic">
-            Plan names may not match checkout. See Stripe email for details.
-          </p>
-          <div className="mb-4 flex flex-wrap gap-4 text-sm">
-            <div>
-              <span className="text-gray-400">Approx. tier:</span>{" "}
-              <span
-                className={`font-bold ${
-                  user.plan === "pro" ? "text-green-700" : "text-gray-700"
-                }`}
-              >
-                {user.plan === "pro" ? "Pro-ish" : "Starter / free-ish"}
-              </span>
-            </div>
-            <div className="text-gray-500">
-              Other plans: &quot;Pro&quot;, &quot;Pro Meal&quot;, &quot;Premium
-              (beta)&quot; — same app, different wording elsewhere.
-            </div>
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted">Email</dt>
+            <dd className="font-medium text-ink">{user.email}</dd>
           </div>
+        </dl>
+      </section>
 
-          {user.plan === "free" ? (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Paid options unlock more. Pricing shown in-app is indicative;
-                actual subscription lines appear on Stripe&apos;s page (may list
-                multiple items). A common offer is around <strong>$9.99</strong>{" "}
-                per month; we also mention <strong>$7.99</strong> in older copy
-                and <strong>$12</strong> in FAQ — use whichever you remember.
-              </p>
-              <p className="text-xs text-gray-400">
-                Free product exists in Stripe as &quot;Free&quot;; upgrading is
-                not the Free product. If unsure, click below and read the small
-                print on the next screen.
-              </p>
-              <button
-                onClick={handleUpgrade}
-                className="bg-lime-600 text-white px-5 py-2 rounded border-2 border-purple-700 text-sm font-semibold"
-              >
-                Continue to payment / upgrade flow
-              </button>
-            </div>
-          ) : (
-            <div>
-              <p className="text-sm text-gray-600 mb-4">
-                You may have an active paid configuration. Features should work;
-                if not, contact support or try upgrading again (not recommended).
-              </p>
-              <button
-                onClick={handleCancelSubscription}
-                className="bg-gray-200 text-gray-700 px-6 py-2 border border-gray-400 text-sm"
-              >
-                Cancel Subscription
-              </button>
-            </div>
-          )}
+      <section className="card mt-6 p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-ink">Plan</h2>
+            <p className="mt-1 text-sm text-muted">
+              {isPro
+                ? "You have full access to everything."
+                : "You're on the free plan."}
+            </p>
+          </div>
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-medium ${
+              isPro ? "bg-sage-soft text-sage" : "bg-cream text-muted"
+            }`}
+          >
+            {isPro ? "Pro" : "Free"}
+          </span>
         </div>
 
-        <div className="bg-white border-2 border-lime-400 p-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Danger Zone</h2>
-          <p className="text-sm text-gray-500 mb-3">
-            Deleting your account is permanent and cannot be undone.
-          </p>
-          <button className="bg-red-600 text-white px-6 py-2 rounded font-bold text-sm">
-            Delete Account
-          </button>
-        </div>
-      </div>
-      </div>
+        {cancelError && <div className="alert-error mt-4">{cancelError}</div>}
+
+        {isPro ? (
+          <div className="mt-6 border-t border-line pt-5">
+            <button
+              onClick={handleCancelSubscription}
+              disabled={busy}
+              className="btn btn-secondary"
+            >
+              {busy ? "Working..." : "Cancel subscription"}
+            </button>
+            <p className="mt-2 text-xs text-subtle">
+              You&apos;ll move to the free plan and keep every recipe you&apos;ve saved.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-6 border-t border-line pt-5">
+            <ul className="space-y-2">
+              {PRO_FEATURES.map((feature) => (
+                <li key={feature} className="flex items-center gap-2 text-sm text-ink">
+                  <span className="text-sage" aria-hidden>
+                    ✓
+                  </span>
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={handleUpgrade}
+              disabled={busy}
+              className="btn btn-primary mt-5"
+            >
+              {busy ? "Starting checkout..." : "Upgrade to Pro"}
+            </button>
+            <p className="mt-2 text-xs text-subtle">
+              Billed monthly through Stripe. Cancel anytime.
+            </p>
+          </div>
+        )}
+      </section>
+
+      <section className="card mt-6 p-6">
+        <h2 className="text-lg font-semibold text-ink">Delete account</h2>
+        <p className="mt-1 text-sm text-muted">
+          Permanently removes your account, recipes, and meal plans. This cannot be
+          undone.
+        </p>
+        <button className="btn btn-danger mt-4" disabled>
+          Delete account
+        </button>
+        <p className="mt-2 text-xs text-subtle">
+          Not available yet — see NOTES.md for the planned implementation.
+        </p>
+      </section>
     </div>
   );
 }

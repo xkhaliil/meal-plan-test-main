@@ -1,7 +1,6 @@
 "use client";
 
-import ChefLogo from "@/app/components/ChefLogo";
-import { CookingGifBackdrop } from "@/app/components/CookingGifPlaster";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 
 interface MealPlanRecipe {
@@ -19,52 +18,178 @@ interface MealPlan {
   recipes: MealPlanRecipe[];
 }
 
-export default function MealPlansPage() {
-  console.log("[CHAOS render] MealPlansPage");
-  const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
+function formatRange(start: string, end: string): string {
+  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+  return `${new Date(start).toLocaleDateString(undefined, opts)} – ${new Date(
+    end
+  ).toLocaleDateString(undefined, opts)}`;
+}
 
-  useEffect(() => {
+export default function MealPlansPage() {
+  const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [name, setName] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  function loadMealPlans() {
     const token = localStorage.getItem("token");
     fetch("/api/meal-plans", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
       .then((data) => setMealPlans(data.mealPlans || []));
+  }
+
+  useEffect(() => {
+    loadMealPlans();
   }, []);
 
-  return (
-    <div className="relative min-h-screen">
-      <div className="absolute inset-0 z-0 bg-gray-50" aria-hidden />
-      <CookingGifBackdrop position="absolute" stackClass="z-[1]" />
-      <div className="relative z-10 p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6 font-sans flex items-center gap-2">
-        <ChefLogo size={36} />
-        Meal Plans
-      </h1>
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
 
-      {mealPlans.length === 0 && (
-        <p className="text-gray-400 text-center mt-12">No meal plans yet.</p>
+    if (!name.trim() || !startDate || !endDate) {
+      setError("Name, start date, and end date are required");
+      return;
+    }
+    if (new Date(endDate) <= new Date(startDate)) {
+      setError("End date must be after start date");
+      return;
+    }
+
+    setSaving(true);
+    const token = localStorage.getItem("token");
+    const res = await fetch("/api/meal-plans", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ name, startDate, endDate }),
+    });
+    setSaving(false);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Could not create meal plan");
+      return;
+    }
+
+    setName("");
+    setStartDate("");
+    setEndDate("");
+    setShowCreateForm(false);
+    loadMealPlans();
+  }
+
+  return (
+    <div className="mx-auto max-w-5xl px-6 py-10">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold text-ink">Meal plans</h1>
+          <p className="mt-1 text-sm text-muted">
+            Build a week from recipes you already have.
+          </p>
+        </div>
+        <button
+          onClick={() => setShowCreateForm((v) => !v)}
+          className={showCreateForm ? "btn btn-secondary" : "btn btn-primary"}
+        >
+          {showCreateForm ? "Cancel" : "New meal plan"}
+        </button>
+      </div>
+
+      {showCreateForm && (
+        <form onSubmit={handleCreate} className="card mt-6 p-6">
+          <h2 className="text-lg font-semibold text-ink">New meal plan</h2>
+          {error && <div className="alert-error mt-4">{error}</div>}
+          <div className="mt-5 flex flex-wrap items-end gap-4">
+            <div className="min-w-[200px] flex-1">
+              <label className="label" htmlFor="plan-name">
+                Name
+              </label>
+              <input
+                id="plan-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Week of the 12th"
+                className="input"
+              />
+            </div>
+            <div>
+              <label className="label" htmlFor="plan-start">
+                Start date
+              </label>
+              <input
+                id="plan-start"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="input"
+              />
+            </div>
+            <div>
+              <label className="label" htmlFor="plan-end">
+                End date
+              </label>
+              <input
+                id="plan-end"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="input"
+              />
+            </div>
+            <button type="submit" disabled={saving} className="btn btn-primary">
+              {saving ? "Creating..." : "Create plan"}
+            </button>
+          </div>
+        </form>
       )}
 
-      <div className="space-y-6">
-        {mealPlans.map((plan) => (
-          <a
-            key={plan.id}
-            href={`/meal-plans/${plan.id}`}
-            className="block bg-white border border-gray-200 p-6 rounded"
-          >
-            <h2 className="text-xl font-bold text-purple-700">{plan.name}</h2>
-            <p className="text-sm text-gray-400 mt-1">
-              {new Date(plan.startDate).toLocaleDateString()} -{" "}
-              {new Date(plan.endDate).toLocaleDateString()}
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              {plan.recipes.length} meals planned
-            </p>
-          </a>
-        ))}
-      </div>
-      </div>
+      {mealPlans.length === 0 ? (
+        <div className="card mt-8 px-6 py-16 text-center">
+          <p className="text-sm text-muted">
+            No meal plans yet. Create one to start scheduling meals.
+          </p>
+        </div>
+      ) : (
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {mealPlans.map((plan) => (
+            <Link
+              key={plan.id}
+              href={`/meal-plans/${plan.id}`}
+              className="card group p-6 transition-shadow hover:shadow-[0_2px_16px_rgba(28,25,23,0.06)]"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="font-display text-xl font-semibold text-ink group-hover:text-terracotta">
+                    {plan.name}
+                  </h2>
+                  <p className="mt-1 text-sm text-muted">
+                    {formatRange(plan.startDate, plan.endDate)}
+                  </p>
+                </div>
+                <span className="tag shrink-0">
+                  {plan.recipes.length} {plan.recipes.length === 1 ? "meal" : "meals"}
+                </span>
+              </div>
+
+              {plan.recipes.length > 0 && (
+                <p className="mt-4 line-clamp-1 text-xs text-subtle">
+                  {plan.recipes
+                    .slice(0, 4)
+                    .map((r) => r.recipe.title)
+                    .join(" · ")}
+                </p>
+              )}
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

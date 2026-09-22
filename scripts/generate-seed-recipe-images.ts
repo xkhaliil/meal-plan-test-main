@@ -3,10 +3,13 @@ import * as fs from "fs";
 import * as path from "path";
 import { generateImagenImageBuffer } from "../lib/nanoBanana";
 
+// Phrased entirely in the positive: listing negations like "no text, no watermark"
+// caused Imagen to render those words into the image (see greek-salad.jpg before
+// regeneration). Describe only what should be in frame.
 const FOOD_STYLE =
   "Professional food photography for a high-end cookbook app, 100mm macro lens, " +
   "controlled soft studio lighting, shallow depth of field, appetizing steam where appropriate, " +
-  "sharp focus on the dish, no text, no watermark, no people, no hands.";
+  "sharp focus on the plated dish, clean uncluttered surface, styled for print.";
 
 type SeedRecipeImage = {
   file: string;
@@ -169,10 +172,23 @@ async function main() {
   const outDir = path.join(process.cwd(), "public", "images", "recipes");
   fs.mkdirSync(outDir, { recursive: true });
 
+  // Optional filename args regenerate just those images:
+  //   npm run generate:recipe-images -- greek-salad.jpg mushroom-risotto.jpg
+  const requested = process.argv.slice(2);
+  const targets = requested.length
+    ? RECIPES.filter((r) => requested.includes(r.file))
+    : RECIPES;
+
+  if (requested.length && targets.length !== requested.length) {
+    const known = new Set(RECIPES.map((r) => r.file));
+    const unknown = requested.filter((f) => !known.has(f));
+    throw new Error(`Unknown image file(s): ${unknown.join(", ")}`);
+  }
+
   let done = 0;
-  for (const r of RECIPES) {
+  for (const r of targets) {
     const prompt = buildPrompt(r);
-    process.stdout.write(`[${++done}/${RECIPES.length}] ${r.file} … `);
+    process.stdout.write(`[${++done}/${targets.length}] ${r.file} … `);
     const buf = await generateImagenImageBuffer({
       prompt,
       aspectRatio: "4:3",

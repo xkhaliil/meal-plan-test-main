@@ -1,7 +1,7 @@
 "use client";
 
-import ChefLogo from "@/app/components/ChefLogo";
-import { CookingGifBackdrop } from "@/app/components/CookingGifPlaster";
+import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect, use } from "react";
 
 interface Recipe {
@@ -16,7 +16,7 @@ interface Recipe {
   cuisine: string | null;
   dietaryTags: string | null;
   ingredients: { id: string; name: string; amount: string; unit: string }[];
-  user: { name: string; email: string };
+  user: { name: string };
 }
 
 export default function RecipeDetailPage({
@@ -25,95 +25,131 @@ export default function RecipeDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  console.log("[CHAOS render] RecipeDetailPage", id);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     fetch(`/api/recipes/${id}`)
       .then((r) => r.json())
-      .then((data) => setRecipe(data.recipe));
+      .then((data) => {
+        if (data.recipe) setRecipe(data.recipe);
+        else setNotFound(true);
+      })
+      .catch(() => setNotFound(true));
   }, [id]);
 
-  if (!recipe) return null;
+  if (notFound) {
+    return (
+      <div className="mx-auto max-w-2xl px-6 py-24 text-center">
+        <h1 className="text-2xl font-semibold text-ink">Recipe not found</h1>
+        <p className="mt-2 text-sm text-muted">
+          It may have been deleted from the catalog.
+        </p>
+        <Link href="/recipes" className="btn btn-secondary mt-6">
+          Back to recipes
+        </Link>
+      </div>
+    );
+  }
+
+  if (!recipe) {
+    return (
+      <div className="mx-auto max-w-4xl px-6 py-10">
+        <div className="h-72 w-full animate-pulse rounded-xl bg-line/60" />
+        <div className="mt-6 h-8 w-2/3 animate-pulse rounded-lg bg-line/60" />
+        <div className="mt-3 h-4 w-full animate-pulse rounded bg-line/50" />
+      </div>
+    );
+  }
+
+  const tags = (recipe.dietaryTags ?? "")
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  const stats = [
+    { label: "Prep", value: `${recipe.prepTime} min` },
+    { label: "Cook", value: `${recipe.cookTime} min` },
+    { label: "Serves", value: `${recipe.servings}` },
+    ...(recipe.calories ? [{ label: "Calories", value: `${recipe.calories}` }] : []),
+  ];
 
   return (
-    <div className="relative min-h-screen">
-      <div className="absolute inset-0 z-0 bg-stone-50" aria-hidden />
-      <CookingGifBackdrop position="absolute" stackClass="z-[1]" />
-      <div className="relative z-10 mx-auto max-w-4xl p-8 font-serif">
-      <img
-        src={recipe.imageUrl}
-        alt={recipe.title}
-        className="w-full h-[500px] object-cover mb-6"
-      />
+    <div className="mx-auto max-w-4xl px-6 py-10">
+      <Link
+        href="/recipes"
+        className="text-sm text-muted transition-colors hover:text-ink"
+      >
+        ← All recipes
+      </Link>
 
-      <h1 className="text-5xl font-bold text-orange-700 mb-2 flex items-center gap-3 flex-wrap">
-        <ChefLogo size={48} />
-        {recipe.title}
-      </h1>
-      <p className="text-gray-600 text-lg mb-6">{recipe.description}</p>
-
-      <div className="flex gap-8 mb-8 text-sm text-gray-500">
-        <div>
-          <span className="font-bold text-gray-800">Prep Time</span>
-          <br />
-          {recipe.prepTime} minutes
-        </div>
-        <div>
-          <span className="font-bold text-gray-800">Cook Time</span>
-          <br />
-          {recipe.cookTime} minutes
-        </div>
-        <div>
-          <span className="font-bold text-gray-800">Servings</span>
-          <br />
-          {recipe.servings}
-        </div>
-        {recipe.calories && (
-          <div>
-            <span className="font-bold text-gray-800">Calories</span>
-            <br />
-            {recipe.calories}
-          </div>
-        )}
-        {recipe.cuisine && (
-          <div>
-            <span className="font-bold text-gray-800">Cuisine</span>
-            <br />
-            {recipe.cuisine}
-          </div>
-        )}
+      <div className="relative mt-5 h-[340px] overflow-hidden rounded-xl border border-line">
+        <Image
+          src={recipe.imageUrl}
+          alt={recipe.title}
+          fill
+          sizes="(max-width: 896px) 100vw, 896px"
+          className="object-cover"
+          priority
+        />
       </div>
 
-      {recipe.dietaryTags && (
-        <div className="mb-6">
-          {recipe.dietaryTags.split(",").map((tag) => (
-            <span
-              key={tag}
-              className="inline-block bg-lime-200 text-lime-900 text-xs px-3 py-1 mr-2 rounded"
-            >
-              {tag.trim()}
-            </span>
-          ))}
+      <div className="mt-8 flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-2xl">
+          {recipe.cuisine && (
+            <p className="text-xs font-medium uppercase tracking-wider text-terracotta">
+              {recipe.cuisine}
+            </p>
+          )}
+          <h1 className="mt-1.5 text-4xl font-semibold leading-tight text-ink">
+            {recipe.title}
+          </h1>
+          <p className="mt-3 text-base leading-relaxed text-muted">
+            {recipe.description}
+          </p>
+          {tags.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {tags.map((tag) => (
+                <span key={tag} className="tag">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Ingredients</h2>
-      <ul className="mb-8 space-y-2">
-        {recipe.ingredients.map((ing) => (
-          <li key={ing.id} className="flex gap-2 text-gray-700">
-            <span className="font-semibold">
-              {ing.amount} {ing.unit}
-            </span>
-            <span>{ing.name}</span>
-          </li>
+      <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-4">
+        {stats.map((stat) => (
+          <div key={stat.label} className="bg-surface px-5 py-4">
+            <dt className="text-xs uppercase tracking-wide text-subtle">
+              {stat.label}
+            </dt>
+            <dd className="mt-1 font-display text-xl font-semibold text-ink">
+              {stat.value}
+            </dd>
+          </div>
         ))}
-      </ul>
+      </dl>
 
-      <p className="text-sm text-gray-400">
-        Created by {recipe.user.name}
-      </p>
-      </div>
+      <section className="mt-10">
+        <h2 className="text-xl font-semibold text-ink">Ingredients</h2>
+        <ul className="card mt-4 divide-y divide-line">
+          {recipe.ingredients.map((ing) => (
+            <li
+              key={ing.id}
+              className="flex items-baseline justify-between gap-4 px-5 py-3"
+            >
+              <span className="text-sm text-ink">{ing.name}</span>
+              <span className="shrink-0 text-sm text-muted">
+                {[ing.amount, ing.unit].filter(Boolean).join(" ")}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <p className="mt-8 text-xs text-subtle">Added by {recipe.user.name}</p>
     </div>
   );
 }

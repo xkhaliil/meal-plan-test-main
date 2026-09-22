@@ -1,30 +1,26 @@
-"use client";
-
 import ChefLogo from "@/app/components/ChefLogo";
-import { CookingGifBackdrop } from "@/app/components/CookingGifPlaster";
+import Link from "next/link";
 
 export default function CheckoutSuccessPage() {
-  console.log("[CHAOS render] CheckoutSuccessPage");
   return (
-    <div className="relative flex min-h-screen items-center justify-center">
-      <div className="absolute inset-0 z-0 bg-green-50" aria-hidden />
-      <CookingGifBackdrop stackClass="z-[1]" />
-      <div className="relative z-10 text-center">
-        <div className="flex justify-center mb-4">
-          <ChefLogo size={56} priority />
+    <div className="flex min-h-screen items-center justify-center px-6 py-12">
+      <div className="w-full max-w-md text-center">
+        <ChefLogo size={36} href={null} priority />
+        <div className="card mt-6 p-10">
+          <span
+            className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sage-soft text-xl text-sage"
+            aria-hidden
+          >
+            ✓
+          </span>
+          <h1 className="mt-5 text-2xl font-semibold text-ink">You&apos;re on Pro</h1>
+          <p className="mt-2 text-sm text-muted">
+            Unlimited Recipe Bot access is active on your account.
+          </p>
+          <Link href="/recipes" className="btn btn-primary mt-7 w-full">
+            Back to your recipes
+          </Link>
         </div>
-        <h1 className="text-4xl font-bold text-green-700 mb-4">
-          Payment Successful!
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Welcome to Pro! Your account has been upgraded.
-        </p>
-        <a
-          href="/recipes"
-          className="bg-green-600 text-white px-6 py-3 rounded font-bold"
-        >
-          Go to Recipes
-        </a>
       </div>
     </div>
   );

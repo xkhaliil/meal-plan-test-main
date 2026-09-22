@@ -1,30 +1,25 @@
-"use client";
-
 import ChefLogo from "@/app/components/ChefLogo";
-import { CookingGifBackdrop } from "@/app/components/CookingGifPlaster";
+import Link from "next/link";
 
 export default function CheckoutCancelPage() {
-  console.log("[CHAOS render] CheckoutCancelPage");
   return (
-    <div className="relative flex min-h-screen items-center justify-center">
-      <div className="absolute inset-0 z-0 bg-red-50" aria-hidden />
-      <CookingGifBackdrop stackClass="z-[1]" />
-      <div className="relative z-10 text-center">
-        <div className="flex justify-center mb-4">
-          <ChefLogo size={48} priority />
+    <div className="flex min-h-screen items-center justify-center px-6 py-12">
+      <div className="w-full max-w-md text-center">
+        <ChefLogo size={36} href={null} priority />
+        <div className="card mt-6 p-10">
+          <h1 className="text-2xl font-semibold text-ink">Checkout cancelled</h1>
+          <p className="mt-2 text-sm text-muted">
+            No charges were made. You&apos;re still on the free plan.
+          </p>
+          <div className="mt-7 flex flex-col gap-2">
+            <Link href="/settings" className="btn btn-primary w-full">
+              Back to settings
+            </Link>
+            <Link href="/recipes" className="btn btn-ghost w-full">
+              Go to recipes
+            </Link>
+          </div>
         </div>
-        <h1 className="text-3xl font-bold text-red-700 mb-4">
-          Payment Cancelled
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Your checkout was cancelled. No charges were made.
-        </p>
-        <a
-          href="/settings"
-          className="bg-red-600 text-white px-6 py-3 rounded font-bold"
-        >
-          Back to Settings
-        </a>
       </div>
     </div>
   );

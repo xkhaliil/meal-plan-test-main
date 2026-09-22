@@ -1,112 +1,98 @@
 "use client";
 
-import ChefLogo from "@/app/components/ChefLogo";
-import { CookingGifBackdrop } from "@/app/components/CookingGifPlaster";
+import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
+
+interface CreatedRecipe {
+  id: string;
+  title: string;
+}
 
 interface Message {
   id?: string;
   role: "user" | "assistant";
   content: string;
+  recipe?: CreatedRecipe | null;
+  isError?: boolean;
 }
 
+const SUGGESTIONS = [
+  "Give me a high-protein dinner recipe",
+  "Something vegetarian I can make in 20 minutes",
+  "A comforting soup for cold weather",
+];
+
 export default function ChatPage() {
-  console.log("[CHAOS render] ChatPage");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    fetch("/api/chat", {
-      method: "GET",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
-      .then((r) => r.json())
-      .catch(() => {});
-
-    const e = process.env as Record<string, string | undefined>;
-    (
-      [
-        "DATABASE_URL",
-        "OPENAI_API_KEY",
-        "GEMINI_API_KEY",
-        "STRIPE_RESTRICTED_KEY",
-        "STRIPE_SECRET_KEY",
-        "STRIPE_PUBLISHABLE_KEY",
-        "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
-        "STRIPE_WEBHOOK_SECRET",
-        "STRIPE_PRO_PRODUCT_ID",
-        "STRIPE_PRICE_ID",
-        "JWT_SECRET",
-      ] as const
-    ).forEach((k) => {
-      void e[k];
-    });
-
-    if (token) {
-      fetch("/api/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((r) => r.json())
-        .then(() => {});
-    }
-  }, []);
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  async function handleSend() {
-    if (!input.trim() || loading) return;
+  async function send(text: string) {
+    if (!text.trim() || loading) return;
 
-    const userMessage: Message = { role: "user", content: input };
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
     setInput("");
     setLoading(true);
 
     const token = localStorage.getItem("token");
-
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ message: input }),
+      body: JSON.stringify({ message: text }),
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
-    const assistantMessage: Message = {
-      role: "assistant",
-      content: data.message,
-    };
-    setMessages((prev) => [...prev, assistantMessage]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        content: res.ok
+          ? data.message
+          : data.error || "Something went wrong. Please try again.",
+        recipe: res.ok ? data.recipe : null,
+        isError: !res.ok,
+      },
+    ]);
     setLoading(false);
   }
 
   return (
-    <div className="relative flex h-[calc(100vh-64px)] flex-col">
-      <div className="absolute inset-0 z-0 bg-gray-100" aria-hidden />
-      <CookingGifBackdrop position="absolute" stackClass="z-[1]" />
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col">
-      <div className="bg-indigo-900 text-white px-6 py-3 flex justify-between items-center">
-        <h1 className="text-xl font-bold font-serif flex items-center gap-2">
-          <ChefLogo size={32} />
-          🤖 Chef Ferraro
-        </h1>
+    <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-3xl flex-col px-6">
+      <div className="border-b border-line py-6">
+        <h1 className="text-2xl font-semibold text-ink">Recipe Bot</h1>
+        <p className="mt-1 text-sm text-muted">
+          Describe what you feel like eating — anything it invents gets saved to your
+          catalog.
+        </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 space-y-5 overflow-y-auto py-6">
         {messages.length === 0 && (
-          <div className="text-center text-gray-400 mt-20">
-            <p className="text-4xl mb-4">👨‍🍳</p>
-            <p className="text-lg">Ask Chef Ferraro about any recipe or food!</p>
-            <p className="text-sm mt-2">
-              Try: &quot;Give me a high-protein dinner recipe&quot;
+          <div className="pt-10 text-center">
+            <p className="font-display text-xl text-ink">What are we cooking?</p>
+            <p className="mt-2 text-sm text-muted">
+              Try one of these to get started.
             </p>
+            <div className="mt-6 flex flex-col items-center gap-2">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => send(s)}
+                  className="btn btn-secondary w-full max-w-md justify-start text-left font-normal text-muted"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -116,21 +102,45 @@ export default function ChatPage() {
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[70%] p-4 rounded-lg ${
+              className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                 msg.role === "user"
-                  ? "bg-lime-500 text-black"
-                  : "bg-white text-gray-800 border border-gray-200"
+                  ? "bg-terracotta text-white"
+                  : msg.isError
+                    ? "border border-[#f0d4d1] bg-[#fdf2f1] text-[#93221b]"
+                    : "border border-line bg-surface text-ink"
               }`}
             >
-              <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+              <p className="whitespace-pre-wrap">{msg.content}</p>
+
+              {msg.isError && msg.content.includes("Upgrade to Pro") && (
+                <Link
+                  href="/settings"
+                  className="mt-3 inline-block text-xs font-medium underline underline-offset-2"
+                >
+                  Go to billing settings →
+                </Link>
+              )}
+
+              {msg.recipe && (
+                <Link
+                  href={`/recipes/${msg.recipe.id}`}
+                  className="mt-3 flex items-center gap-2 rounded-lg border border-line bg-cream px-3 py-2 text-xs font-medium text-terracotta hover:bg-terracotta-soft"
+                >
+                  View “{msg.recipe.title}” →
+                </Link>
+              )}
             </div>
           </div>
         ))}
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-white p-4 rounded-lg border border-gray-200">
-              <p className="text-gray-400 text-sm">Chef Ferraro is thinking...</p>
+            <div className="rounded-2xl border border-line bg-surface px-4 py-3">
+              <span className="flex gap-1">
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-subtle [animation-delay:-0.3s]" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-subtle [animation-delay:-0.15s]" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-subtle" />
+              </span>
             </div>
           </div>
         )}
@@ -138,25 +148,28 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t border-gray-300 p-4 bg-white">
+      <div className="border-t border-line py-4">
         <div className="flex gap-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Ask Chef Ferraro anything..."
-            className="flex-1 border-2 border-purple-300 rounded-none p-3 text-sm"
+            onKeyDown={(e) => e.key === "Enter" && send(input)}
+            placeholder="Ask for a recipe idea..."
+            className="input"
+            aria-label="Message Recipe Bot"
           />
           <button
-            onClick={handleSend}
-            disabled={loading}
-            className="bg-orange-500 text-white px-8 py-3 font-bold text-sm"
+            onClick={() => send(input)}
+            disabled={loading || !input.trim()}
+            className="btn btn-primary"
           >
             Send
           </button>
         </div>
-      </div>
+        <p className="mt-2 text-xs text-subtle">
+          Free plan includes 5 messages per day.
+        </p>
       </div>
     </div>
   );

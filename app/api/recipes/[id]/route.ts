@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/auth";
+import { validateRecipeInput } from "@/lib/recipeInput";
 
 export async function GET(
   req: NextRequest,
@@ -12,7 +13,7 @@ export async function GET(
     where: { id },
     include: {
       ingredients: true,
-      user: { select: { name: true, email: true } },
+      user: { select: { name: true } },
     },
   });
 
@@ -33,19 +34,31 @@ export async function PUT(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
+  const existing = await prisma.recipe.findUnique({ where: { id } });
+  if (!existing) {
+    return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
+  }
+  if (existing.userId !== session.userId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const body = await req.json();
+  const validated = validateRecipeInput(body, { partial: true });
+  if ("error" in validated) {
+    return NextResponse.json({ error: validated.error }, { status: 400 });
+  }
 
   const recipe = await prisma.recipe.update({
     where: { id },
     data: {
-      title: body.title,
-      description: body.description,
-      prepTime: body.prepTime,
-      cookTime: body.cookTime,
-      servings: body.servings,
-      calories: body.calories,
-      cuisine: body.cuisine,
-      dietaryTags: body.dietaryTags,
+      title: validated.title,
+      description: validated.description,
+      prepTime: validated.prepTime,
+      cookTime: validated.cookTime,
+      servings: validated.servings,
+      calories: validated.calories,
+      cuisine: validated.cuisine,
+      dietaryTags: validated.dietaryTags,
     },
   });
 
@@ -57,6 +70,18 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const session = getUserFromRequest(req);
+  if (!session) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const existing = await prisma.recipe.findUnique({ where: { id } });
+  if (!existing) {
+    return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
+  }
+  if (existing.userId !== session.userId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   await prisma.ingredient.deleteMany({ where: { recipeId: id } });
   await prisma.mealPlanRecipe.deleteMany({ where: { recipeId: id } });
