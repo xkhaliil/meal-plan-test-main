@@ -1,0 +1,272 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* --- Client chaos: CPU-heavy visuals + hidden system cursor (see ClientChaosShell) --- */
+html.chaos-cursor-none,
+html.chaos-cursor-none * {
+  cursor: none !important;
+}
+
+@keyframes chaos-pulse-glow {
+  0%,
+  100% {
+    filter: contrast(1);
+    box-shadow:
+      inset 0 0 70px rgba(124, 58, 237, 0.09),
+      inset 0 0 120px rgba(88, 28, 135, 0.06);
+  }
+  50% {
+    filter: contrast(1.03);
+    box-shadow:
+      inset 0 0 90px rgba(124, 58, 237, 0.12),
+      inset 0 0 140px rgba(88, 28, 135, 0.08);
+  }
+}
+
+@keyframes chaos-heat-shimmer {
+  0% {
+    opacity: 0.12;
+    transform: scale(1);
+    backdrop-filter: blur(12px) brightness(1);
+  }
+  50% {
+    opacity: 0.18;
+    transform: scale(1.01);
+    backdrop-filter: blur(16px) brightness(1.04);
+  }
+  100% {
+    opacity: 0.14;
+    transform: scale(1);
+    backdrop-filter: blur(14px) brightness(1.02);
+  }
+}
+
+.chaos-root.chaos-cpu-burn {
+  position: relative;
+  isolation: isolate;
+  animation: chaos-pulse-glow 2.2s ease-in-out infinite;
+}
+
+.chaos-heat-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483645;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 25% 15%, rgba(192, 132, 252, 0.14), transparent 42%),
+    radial-gradient(circle at 78% 88%, rgba(167, 139, 250, 0.12), transparent 38%),
+    radial-gradient(circle at 50% 50%, rgba(147, 51, 234, 0.08), transparent 55%);
+  animation: chaos-heat-shimmer 1.4s ease-in-out infinite alternate;
+  mix-blend-mode: overlay;
+}
+
+/* --- /landing: motion kept for flavor; no hue-rainbow cycling --- */
+@keyframes landing-bg-pan {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 80%;
+  }
+  100% {
+    background-position: 0% 100%;
+  }
+}
+
+@keyframes landing-wobble {
+  0%,
+  100% {
+    transform: rotate(-2.5deg) scale(1);
+  }
+  50% {
+    transform: rotate(3deg) scale(1.04);
+  }
+}
+
+@keyframes landing-jitter {
+  0% {
+    transform: translate(0, 0) skewX(0deg);
+  }
+  20% {
+    transform: translate(3px, -4px) skewX(-1deg);
+  }
+  40% {
+    transform: translate(-4px, 2px) skewX(1.2deg);
+  }
+  60% {
+    transform: translate(2px, 3px) skewX(-0.5deg);
+  }
+  80% {
+    transform: translate(-2px, -2px) skewX(0.8deg);
+  }
+  100% {
+    transform: translate(0, 0) skewX(0deg);
+  }
+}
+
+@keyframes landing-pulse-glow {
+  0%,
+  100% {
+    text-shadow:
+      0 0 10px rgba(232, 121, 249, 0.45),
+      0 0 22px rgba(168, 85, 247, 0.28);
+  }
+  50% {
+    text-shadow:
+      0 0 14px rgba(232, 121, 249, 0.55),
+      0 0 28px rgba(168, 85, 247, 0.35);
+  }
+}
+
+@keyframes landing-spin-slow {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    transform: rotate(360deg) scale(1.08);
+  }
+}
+
+@keyframes landing-border-rave {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 40px rgba(168, 85, 247, 0.22),
+      0 0 18px rgba(168, 85, 247, 0.28);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 52px rgba(168, 85, 247, 0.28),
+      0 0 24px rgba(168, 85, 247, 0.34);
+  }
+}
+
+@keyframes landing-blur-breathe {
+  0%,
+  100% {
+    backdrop-filter: blur(8px) brightness(1);
+    opacity: 0.85;
+  }
+  50% {
+    backdrop-filter: blur(14px) brightness(1.06);
+    opacity: 0.92;
+  }
+}
+
+@keyframes landing-scale-yuck {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.12) rotate(-2deg);
+  }
+  75% {
+    transform: scale(0.92) rotate(2deg);
+  }
+}
+
+@keyframes landing-shake-x {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+
+.landing-root {
+  background-size: 220% 220%;
+  animation: landing-bg-pan 5s ease-in-out infinite;
+  will-change: background-position;
+}
+
+.landing-wobble {
+  animation: landing-wobble 0.65s ease-in-out infinite;
+  will-change: transform;
+}
+
+.landing-jitter {
+  animation: landing-jitter 0.45s steps(2, end) infinite;
+  will-change: transform;
+}
+
+.landing-title-glow {
+  animation: landing-pulse-glow 3.5s ease-in-out infinite;
+  will-change: text-shadow;
+}
+
+.landing-orbit {
+  animation: landing-spin-slow 14s linear infinite;
+  will-change: transform;
+}
+
+.landing-card-rave {
+  animation: landing-border-rave 3.5s ease-in-out infinite;
+  will-change: box-shadow;
+}
+
+.landing-blur-layer {
+  animation: landing-blur-breathe 2.8s ease-in-out infinite;
+  will-change: backdrop-filter, opacity;
+}
+
+.landing-cta-pulse {
+  animation: landing-scale-yuck 0.9s ease-in-out infinite;
+  will-change: transform;
+}
+
+.landing-footer-shake {
+  animation: landing-shake-x 0.35s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes landing-soft-flicker {
+  0%,
+  40% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.72;
+    filter: brightness(1.25);
+  }
+  60%,
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+.landing-blink {
+  animation: landing-soft-flicker 2.4s ease-in-out infinite;
+  will-change: opacity, filter;
+}

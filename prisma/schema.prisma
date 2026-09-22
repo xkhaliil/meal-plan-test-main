@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String        @id @default(cuid())
+  email            String        @unique
+  password         String
+  name             String
+  stripeCustomerId String?
+  plan             String        @default("free")
+  createdAt        DateTime      @default(now())
+  recipes          Recipe[]
+  mealPlans        MealPlan[]
+  chatMessages     ChatMessage[]
+}
+
+model Recipe {
+  id          String           @id @default(cuid())
+  title       String
+  description String
+  imageUrl    String
+  prepTime    Int
+  cookTime    Int
+  servings    Int
+  calories    Int?
+  cuisine     String?
+  dietaryTags String?
+  ingredients Ingredient[]
+  userId      String
+  user        User             @relation(fields: [userId], references: [id])
+  mealPlans   MealPlanRecipe[]
+  createdAt   DateTime         @default(now())
+}
+
+model Ingredient {
+  id       String @id @default(cuid())
+  name     String
+  amount   String
+  unit     String
+  recipeId String
+  recipe   Recipe @relation(fields: [recipeId], references: [id])
+}
+
+model MealPlan {
+  id        String           @id @default(cuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  recipes   MealPlanRecipe[]
+  createdAt DateTime         @default(now())
+}
+
+model MealPlanRecipe {
+  id         String   @id @default(cuid())
+  day        String
+  mealType   String
+  recipeId   String
+  recipe     Recipe   @relation(fields: [recipeId], references: [id])
+  mealPlanId String
+  mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  role      String
+  content   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}

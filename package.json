@@ -1,0 +1,43 @@
+{
+  "name": "chef",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "generate:chef-logo": "tsx scripts/generate-chef-logo.ts",
+    "generate:recipe-images": "tsx scripts/generate-seed-recipe-images.ts"
+  },
+  "dependencies": {
+    "@google/genai": "^1.48.0",
+    "@prisma/client": "^6.19.3",
+    "@stripe/stripe-js": "^9.0.1",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.0",
+    "jsonwebtoken": "^9.0.3",
+    "next": "16.2.2",
+    "openai": "^6.33.0",
+    "prisma": "^6.19.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "stripe": "^22.0.0"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.2",
+    "tailwindcss": "^4",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}
