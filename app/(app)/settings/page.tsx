@@ -88,8 +88,8 @@ export default function SettingsPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-10">
-        <div className="h-9 w-48 animate-pulse rounded-lg bg-line/60" />
-        <div className="mt-8 h-32 w-full animate-pulse rounded-xl bg-line/50" />
+        <div className="h-9 w-48 animate-pulse rounded-lg bg-brown/15" />
+        <div className="mt-8 h-32 w-full animate-pulse rounded-card bg-brown/15" />
       </div>
     );
   }
@@ -98,19 +98,19 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
-      <h1 className="text-3xl font-semibold text-ink">Settings</h1>
-      <p className="mt-1 text-sm text-muted">Manage your account and plan.</p>
+      <h1 className="text-3xl uppercase text-brown">Settings</h1>
+      <p className="mt-1 text-sm text-brown/70">Manage your account and plan.</p>
 
       <section className="card mt-8 p-6">
-        <h2 className="text-lg font-semibold text-ink">Profile</h2>
+        <h2 className="text-lg uppercase text-brown">Profile</h2>
         <dl className="mt-4 space-y-3 text-sm">
           <div className="flex justify-between gap-4">
-            <dt className="text-muted">Name</dt>
-            <dd className="font-medium text-ink">{user.name}</dd>
+            <dt className="text-brown/70">Name</dt>
+            <dd className="font-medium text-brown">{user.name}</dd>
           </div>
           <div className="flex justify-between gap-4">
-            <dt className="text-muted">Email</dt>
-            <dd className="font-medium text-ink">{user.email}</dd>
+            <dt className="text-brown/70">Email</dt>
+            <dd className="font-medium text-brown">{user.email}</dd>
           </div>
         </dl>
       </section>
@@ -118,8 +118,8 @@ export default function SettingsPage() {
       <section className="card mt-6 p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-ink">Plan</h2>
-            <p className="mt-1 text-sm text-muted">
+            <h2 className="text-lg uppercase text-brown">Plan</h2>
+            <p className="mt-1 text-sm text-brown/70">
               {isPro
                 ? "You have full access to everything."
                 : "You're on the free plan."}
@@ -127,7 +127,9 @@ export default function SettingsPage() {
           </div>
           <span
             className={`rounded-full px-3 py-1 text-xs font-medium ${
-              isPro ? "bg-sage-soft text-sage" : "bg-cream text-muted"
+              isPro
+                ? "border-2 border-brown bg-green text-white"
+                : "border-2 border-brown bg-yellow text-brown"
             }`}
           >
             {isPro ? "Pro" : "Free"}
@@ -137,7 +139,7 @@ export default function SettingsPage() {
         {cancelError && <div className="alert-error mt-4">{cancelError}</div>}
 
         {isPro ? (
-          <div className="mt-6 border-t border-line pt-5">
+          <div className="mt-6 border-t border-brown pt-5">
             <button
               onClick={handleCancelSubscription}
               disabled={busy}
@@ -145,16 +147,16 @@ export default function SettingsPage() {
             >
               {busy ? "Working..." : "Cancel subscription"}
             </button>
-            <p className="mt-2 text-xs text-subtle">
+            <p className="mt-2 text-xs text-brown/55">
               You&apos;ll move to the free plan and keep every recipe you&apos;ve saved.
             </p>
           </div>
         ) : (
-          <div className="mt-6 border-t border-line pt-5">
+          <div className="mt-6 border-t border-brown pt-5">
             <ul className="space-y-2">
               {PRO_FEATURES.map((feature) => (
-                <li key={feature} className="flex items-center gap-2 text-sm text-ink">
-                  <span className="text-sage" aria-hidden>
+                <li key={feature} className="flex items-center gap-2 text-sm text-brown">
+                  <span className="text-green" aria-hidden>
                     ✓
                   </span>
                   {feature}
@@ -168,7 +170,7 @@ export default function SettingsPage() {
             >
               {busy ? "Starting checkout..." : "Upgrade to Pro"}
             </button>
-            <p className="mt-2 text-xs text-subtle">
+            <p className="mt-2 text-xs text-brown/55">
               Billed monthly through Stripe. Cancel anytime.
             </p>
           </div>
@@ -176,15 +178,15 @@ export default function SettingsPage() {
       </section>
 
       <section className="card mt-6 p-6">
-        <h2 className="text-lg font-semibold text-ink">Delete account</h2>
-        <p className="mt-1 text-sm text-muted">
+        <h2 className="text-lg uppercase text-brown">Delete account</h2>
+        <p className="mt-1 text-sm text-brown/70">
           Permanently removes your account, recipes, and meal plans. This cannot be
           undone.
         </p>
         <button className="btn btn-danger mt-4" disabled>
           Delete account
         </button>
-        <p className="mt-2 text-xs text-subtle">
+        <p className="mt-2 text-xs text-brown/55">
           Not available yet — see NOTES.md for the planned implementation.
         </p>
       </section>

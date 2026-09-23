@@ -1,18 +1,30 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Anton, Caprasimo, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-const fraunces = Fraunces({
+// Caprasimo is the display face cafebinocle.com uses (it's on Google Fonts).
+// Its body face is Founders Grotesk, which is a commercial Klim licence, so
+// Space Grotesk stands in for it here rather than copying their font files.
+const caprasimo = Caprasimo({
   subsets: ["latin"],
-  variable: "--font-fraunces",
+  variable: "--font-caprasimo",
   display: "swap",
-  weight: ["400", "600", "700"],
+  weight: "400",
 });
 
-const inter = Inter({
+const grotesk = Space_Grotesk({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-grotesk",
   display: "swap",
+});
+
+// Heavy condensed face for the oversized wordmark, which gets the wave
+// distortion applied on top (their wordmark uses a custom font, "Cimo").
+const anton = Anton({
+  subsets: ["latin"],
+  variable: "--font-anton",
+  display: "swap",
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -27,7 +39,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`h-full ${fraunces.variable} ${inter.variable}`}>
+    <html
+      lang="en"
+      className={`h-full ${caprasimo.variable} ${grotesk.variable} ${anton.variable}`}
+    >
+      <head>
+        <noscript>
+          {/* Reveal animations start hidden; without JS they must still show. */}
+          <style>{`[data-reveal-item],[data-reveal-text]{opacity:1!important}`}</style>
+        </noscript>
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

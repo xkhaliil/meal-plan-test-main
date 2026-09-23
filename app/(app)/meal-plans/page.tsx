@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Reveal from "@/app/components/motion/Reveal";
 import { useState, useEffect } from "react";
 
 interface MealPlanRecipe {
@@ -89,8 +90,8 @@ export default function MealPlansPage() {
     <div className="mx-auto max-w-5xl px-6 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold text-ink">Meal plans</h1>
-          <p className="mt-1 text-sm text-muted">
+          <h1 className="text-3xl uppercase text-brown">Meal plans</h1>
+          <p className="mt-1 text-sm text-brown/70">
             Build a week from recipes you already have.
           </p>
         </div>
@@ -104,7 +105,7 @@ export default function MealPlansPage() {
 
       {showCreateForm && (
         <form onSubmit={handleCreate} className="card mt-6 p-6">
-          <h2 className="text-lg font-semibold text-ink">New meal plan</h2>
+          <h2 className="text-lg uppercase text-brown">New meal plan</h2>
           {error && <div className="alert-error mt-4">{error}</div>}
           <div className="mt-5 flex flex-wrap items-end gap-4">
             <div className="min-w-[200px] flex-1">
@@ -152,12 +153,16 @@ export default function MealPlansPage() {
 
       {mealPlans.length === 0 ? (
         <div className="card mt-8 px-6 py-16 text-center">
-          <p className="text-sm text-muted">
+          <p className="text-sm text-brown/70">
             No meal plans yet. Create one to start scheduling meals.
           </p>
         </div>
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Reveal
+          y={18}
+          deps={[mealPlans.length > 0]}
+          className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2"
+        >
           {mealPlans.map((plan) => (
             <Link
               key={plan.id}
@@ -166,10 +171,10 @@ export default function MealPlansPage() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="font-display text-xl font-semibold text-ink group-hover:text-terracotta">
+                  <h2 className="font-display text-xl uppercase text-brown group-hover:text-red">
                     {plan.name}
                   </h2>
-                  <p className="mt-1 text-sm text-muted">
+                  <p className="mt-1 text-sm text-brown/70">
                     {formatRange(plan.startDate, plan.endDate)}
                   </p>
                 </div>
@@ -179,7 +184,7 @@ export default function MealPlansPage() {
               </div>
 
               {plan.recipes.length > 0 && (
-                <p className="mt-4 line-clamp-1 text-xs text-subtle">
+                <p className="mt-4 line-clamp-1 text-xs text-brown/55">
                   {plan.recipes
                     .slice(0, 4)
                     .map((r) => r.recipe.title)
@@ -188,7 +193,7 @@ export default function MealPlansPage() {
               )}
             </Link>
           ))}
-        </div>
+        </Reveal>
       )}
     </div>
   );

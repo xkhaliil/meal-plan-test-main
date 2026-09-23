@@ -1,29 +1,30 @@
 @import "tailwindcss";
 
+/* Design tokens taken from cafebinocle.com (Café Binocle): its own CSS exposes
+   --theme-yellow / --theme-beige / --theme-red / --text-color, plus a pill-heavy
+   radius scale (50px pills, 25-30px cards, 50% circles). */
 @theme {
-  --color-cream: #faf8f4;
-  --color-surface: #ffffff;
-  --color-ink: #1c1917;
-  --color-muted: #7c736b;
-  --color-subtle: #a8a099;
-  --color-line: #ebe5dc;
-  --color-terracotta: #c0562f;
-  --color-terracotta-dark: #a3451f;
-  --color-terracotta-soft: #fbeee8;
-  --color-sage: #5c7f5a;
-  --color-sage-soft: #eef3ec;
+  --color-yellow: #ffe26e;
+  --color-beige: #fffeec;
+  --color-brown: #594b3c;
+  --color-brown-soft: #594b3c99;
+  --color-red: #ef5b34;
+  --color-green: #00a881;
+  --color-sky: #8ad7f7;
+  --color-pink: #f8ccdf;
+  --color-purple: #553ee7;
+  --color-ink: #1a1512;
 
-  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
-}
+  --radius-pill: 50px;
+  --radius-card: 25px;
 
-* {
-  border-color: var(--color-line);
+  --font-display: var(--font-caprasimo), "Arial Black", sans-serif;
+  --font-sans: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  background-color: var(--color-cream);
-  color: var(--color-ink);
+  background-color: var(--color-yellow);
+  color: var(--color-brown);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
@@ -32,131 +33,251 @@ h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  letter-spacing: -0.015em;
+  font-weight: 400;
+  line-height: 0.95;
 }
 
-/* --- Shared primitives: keep every page visually consistent --- */
+@layer components {
+  /* --- Buttons: pills, thick brown outlines, red primary --- */
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border-radius: 0.625rem;
-  padding: 0.625rem 1.25rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.25rem;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    opacity 0.15s ease;
-  cursor: pointer;
-  white-space: nowrap;
+  .btn {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-pill);
+    padding: 0.75rem 1.75rem;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    transform: translateY(101%);
+    transition: transform 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+
+  .btn:hover:not(:disabled)::after {
+    transform: translateY(0);
+  }
+
+  .btn:disabled::after {
+    display: none;
+  }
+
+  .btn-primary {
+    background-color: var(--color-red);
+    color: #fff;
+    border: 2px solid var(--color-brown);
+  }
+
+  .btn-primary::after {
+    background-color: var(--color-brown);
+  }
+
+  .btn-secondary {
+    background-color: transparent;
+    color: var(--color-brown);
+    border: 2px solid var(--color-brown);
+  }
+
+  .btn-secondary::after {
+    background-color: var(--color-beige);
+  }
+
+  .btn-ghost {
+    background-color: transparent;
+    color: var(--color-brown);
+    border: 2px solid transparent;
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    border-color: var(--color-brown);
+  }
+
+  .btn-danger {
+    background-color: transparent;
+    color: var(--color-red);
+    border: 2px solid var(--color-red);
+  }
+
+  .btn-danger::after {
+    background-color: #fde8e2;
+  }
+
+  /* Circular arrow button, as used beside each section heading on the café site. */
+  .btn-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid var(--color-brown);
+    color: var(--color-brown);
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  .btn-circle:hover {
+    background-color: var(--color-brown);
+    color: var(--color-yellow);
+  }
+
+  /* --- Surfaces --- */
+
+  .card {
+    background-color: var(--color-beige);
+    border: 2px solid var(--color-brown);
+    border-radius: var(--radius-card);
+  }
+
+  .label {
+    display: block;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-brown);
+    opacity: 0.7;
+    margin-bottom: 0.375rem;
+  }
+
+  .input {
+    width: 100%;
+    background-color: #fff;
+    border: 2px solid var(--color-brown);
+    border-radius: var(--radius-pill);
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    color: var(--color-brown);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .input::placeholder {
+    color: var(--color-brown);
+    opacity: 0.45;
+  }
+
+  .input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(89, 75, 60, 0.18);
+  }
+
+  textarea.input {
+    border-radius: var(--radius-card);
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius-pill);
+    border: 2px solid var(--color-brown);
+    background-color: #fff;
+    color: var(--color-brown);
+    padding: 0.125rem 0.75rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .alert-error {
+    border-radius: var(--radius-card);
+    background-color: #fde8e2;
+    border: 2px solid var(--color-red);
+    color: #8c2a12;
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+  }
 }
 
-.btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+/* --- Motion, ported from cafebinocle.com --- */
+
+@keyframes logo-rotate {
+  0% {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.btn-primary {
-  background-color: var(--color-terracotta);
-  color: #fff;
+@keyframes floating {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  45% {
+    transform: translate3d(0, -10%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
 }
 
-.btn-primary:hover:not(:disabled) {
-  background-color: var(--color-terracotta-dark);
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
-.btn-secondary {
-  background-color: var(--color-surface);
-  color: var(--color-ink);
-  border: 1px solid var(--color-line);
+/* Durations measured off cafebinocle.com: logo-rotate 30s linear,
+   floating 2s linear, both infinite. */
+.logo-rotate {
+  animation: logo-rotate 30s linear infinite;
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background-color: var(--color-cream);
+.floating {
+  animation: floating 2s linear infinite;
 }
 
-.btn-ghost {
-  background-color: transparent;
-  color: var(--color-muted);
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 26s linear infinite;
 }
 
-.btn-ghost:hover:not(:disabled) {
-  color: var(--color-ink);
+/* Initial states for the GSAP reveals live in CSS so nothing flashes before
+   hydration; both fallbacks below guarantee content is never stuck hidden. */
+[data-reveal-item],
+[data-reveal-text] {
+  opacity: 0;
 }
 
-.btn-danger {
-  background-color: transparent;
-  color: #b3261e;
-  border: 1px solid #f0d4d1;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background-color: #fdf2f1;
-}
-
-.card {
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 0.875rem;
-}
-
-.label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-muted);
-  margin-bottom: 0.375rem;
-}
-
-.input {
-  width: 100%;
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 0.625rem;
-  padding: 0.625rem 0.875rem;
-  font-size: 0.875rem;
-  color: var(--color-ink);
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.input::placeholder {
-  color: var(--color-subtle);
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--color-terracotta);
-  box-shadow: 0 0 0 3px rgba(192, 86, 47, 0.12);
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 9999px;
-  background-color: var(--color-sage-soft);
-  color: var(--color-sage);
-  padding: 0.125rem 0.625rem;
-  font-size: 0.6875rem;
-  font-weight: 500;
-}
-
-.alert-error {
-  border-radius: 0.625rem;
-  background-color: #fdf2f1;
-  border: 1px solid #f0d4d1;
-  color: #93221b;
-  padding: 0.75rem 0.875rem;
-  font-size: 0.875rem;
+.reveal-line {
+  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  [data-reveal-item],
+  [data-reveal-text] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .logo-rotate,
+  .floating,
+  .marquee-track {
+    animation: none !important;
+  }
+
   *,
   *::before,
   *::after {

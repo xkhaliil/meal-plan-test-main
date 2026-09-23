@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Reveal from "@/app/components/motion/Reveal";
 import { useState, useEffect, use } from "react";
 
 interface MealPlanRecipe {
@@ -109,8 +110,8 @@ export default function MealPlanDetailPage({
   if (loadFailed) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-24 text-center">
-        <h1 className="text-2xl font-semibold text-ink">Meal plan unavailable</h1>
-        <p className="mt-2 text-sm text-muted">
+        <h1 className="text-2xl uppercase text-brown">Meal plan unavailable</h1>
+        <p className="mt-2 text-sm text-brown/70">
           This plan doesn&apos;t exist, or it belongs to another account.
         </p>
         <Link href="/meal-plans" className="btn btn-secondary mt-6">
@@ -123,8 +124,8 @@ export default function MealPlanDetailPage({
   if (!mealPlan) {
     return (
       <div className="mx-auto max-w-6xl px-6 py-10">
-        <div className="h-9 w-64 animate-pulse rounded-lg bg-line/60" />
-        <div className="mt-8 h-24 w-full animate-pulse rounded-xl bg-line/50" />
+        <div className="h-9 w-64 animate-pulse rounded-lg bg-brown/15" />
+        <div className="mt-8 h-24 w-full animate-pulse rounded-card bg-brown/15" />
       </div>
     );
   }
@@ -135,15 +136,15 @@ export default function MealPlanDetailPage({
     <div className="mx-auto max-w-6xl px-6 py-10">
       <Link
         href="/meal-plans"
-        className="text-sm text-muted transition-colors hover:text-ink"
+        className="text-sm text-brown/70 transition-colors hover:text-brown"
       >
         ← All meal plans
       </Link>
 
       <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold text-ink">{mealPlan.name}</h1>
-          <p className="mt-1 text-sm text-muted">
+          <h1 className="text-3xl uppercase text-brown">{mealPlan.name}</h1>
+          <p className="mt-1 text-sm text-brown/70">
             {new Date(mealPlan.startDate).toLocaleDateString(undefined, {
               month: "long",
               day: "numeric",
@@ -161,7 +162,7 @@ export default function MealPlanDetailPage({
       </div>
 
       <section className="card mt-8 p-5">
-        <h2 className="text-sm font-semibold text-ink">Add a meal</h2>
+        <h2 className="text-sm uppercase text-brown">Add a meal</h2>
         {error && <div className="alert-error mt-3">{error}</div>}
 
         <div className="mt-4 flex flex-wrap items-end gap-3">
@@ -229,12 +230,16 @@ export default function MealPlanDetailPage({
         </div>
       </section>
 
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      <Reveal
+        y={16}
+        deps={[mealPlan.id]}
+        className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7"
+      >
         {DAYS.map((day) => {
           const dayMeals = mealPlan.recipes.filter((r) => r.day === day);
           return (
             <div key={day} className="card flex flex-col p-4">
-              <h3 className="font-display text-sm font-semibold capitalize text-ink">
+              <h3 className="font-display text-sm uppercase capitalize text-brown">
                 {day}
               </h3>
               <div className="mt-3 flex flex-1 flex-col gap-3">
@@ -242,17 +247,17 @@ export default function MealPlanDetailPage({
                   const items = dayMeals.filter((r) => r.mealType === meal);
                   return (
                     <div key={meal}>
-                      <p className="text-[0.65rem] uppercase tracking-wide text-subtle">
+                      <p className="text-[0.65rem] uppercase tracking-wide text-brown/55">
                         {meal}
                       </p>
                       {items.length === 0 ? (
-                        <p className="mt-0.5 text-xs text-line">—</p>
+                        <p className="mt-0.5 text-xs text-brown/30">—</p>
                       ) : (
                         items.map((item) => (
                           <Link
                             key={item.id}
                             href={`/recipes/${item.recipe.id}`}
-                            className="mt-1 block rounded-md bg-terracotta-soft px-2 py-1 text-xs leading-snug text-terracotta hover:bg-terracotta hover:text-white"
+                            className="mt-1 block rounded-pill border-2 border-brown bg-yellow px-2.5 py-1 text-xs leading-snug text-brown transition-colors hover:bg-red hover:text-white"
                           >
                             {item.recipe.title}
                           </Link>
@@ -265,7 +270,7 @@ export default function MealPlanDetailPage({
             </div>
           );
         })}
-      </div>
+      </Reveal>
     </div>
   );
 }

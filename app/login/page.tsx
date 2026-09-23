@@ -41,14 +41,14 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <Link href="/landing" className="flex items-center justify-center gap-2.5">
           <ChefLogo size={32} href={null} priority />
-          <span className="font-display text-xl font-semibold text-ink">
+          <span className="font-display text-xl font-semibold text-brown">
             MealPlan Pro
           </span>
         </Link>
 
         <div className="card mt-8 p-8">
-          <h1 className="text-2xl font-semibold text-ink">Welcome back</h1>
-          <p className="mt-1 text-sm text-muted">Sign in to your kitchen.</p>
+          <h1 className="text-2xl uppercase text-brown">Welcome back</h1>
+          <p className="mt-1 text-sm text-brown/70">Sign in to your kitchen.</p>
 
           {error && <div className="alert-error mt-5">{error}</div>}
 
@@ -89,11 +89,11 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="mt-6 text-center text-sm text-muted">
+        <p className="mt-6 text-center text-sm text-brown/70">
           New here?{" "}
           <Link
             href="/register"
-            className="font-medium text-terracotta hover:text-terracotta-dark"
+            className="font-medium text-red hover:text-red"
           >
             Create an account
           </Link>

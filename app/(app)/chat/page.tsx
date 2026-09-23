@@ -67,9 +67,9 @@ export default function ChatPage() {
 
   return (
     <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-3xl flex-col px-6">
-      <div className="border-b border-line py-6">
-        <h1 className="text-2xl font-semibold text-ink">Recipe Bot</h1>
-        <p className="mt-1 text-sm text-muted">
+      <div className="border-b border-brown py-6">
+        <h1 className="text-2xl uppercase text-brown">Recipe Bot</h1>
+        <p className="mt-1 text-sm text-brown/70">
           Describe what you feel like eating — anything it invents gets saved to your
           catalog.
         </p>
@@ -78,8 +78,8 @@ export default function ChatPage() {
       <div className="flex-1 space-y-5 overflow-y-auto py-6">
         {messages.length === 0 && (
           <div className="pt-10 text-center">
-            <p className="font-display text-xl text-ink">What are we cooking?</p>
-            <p className="mt-2 text-sm text-muted">
+            <p className="font-display text-xl text-brown">What are we cooking?</p>
+            <p className="mt-2 text-sm text-brown/70">
               Try one of these to get started.
             </p>
             <div className="mt-6 flex flex-col items-center gap-2">
@@ -87,7 +87,7 @@ export default function ChatPage() {
                 <button
                   key={s}
                   onClick={() => send(s)}
-                  className="btn btn-secondary w-full max-w-md justify-start text-left font-normal text-muted"
+                  className="btn btn-secondary w-full max-w-md justify-start text-left font-normal text-brown/70"
                 >
                   {s}
                 </button>
@@ -102,12 +102,12 @@ export default function ChatPage() {
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+              className={`max-w-[85%] rounded-card px-4 py-3 text-sm leading-relaxed ${
                 msg.role === "user"
-                  ? "bg-terracotta text-white"
+                  ? "bg-red text-white"
                   : msg.isError
                     ? "border border-[#f0d4d1] bg-[#fdf2f1] text-[#93221b]"
-                    : "border border-line bg-surface text-ink"
+                    : "border-2 border-brown bg-beige text-brown"
               }`}
             >
               <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -124,7 +124,7 @@ export default function ChatPage() {
               {msg.recipe && (
                 <Link
                   href={`/recipes/${msg.recipe.id}`}
-                  className="mt-3 flex items-center gap-2 rounded-lg border border-line bg-cream px-3 py-2 text-xs font-medium text-terracotta hover:bg-terracotta-soft"
+                  className="mt-3 flex items-center gap-2 rounded-lg border-2 border-brown bg-yellow px-3 py-2 text-xs font-medium text-red hover:bg-beige"
                 >
                   View “{msg.recipe.title}” →
                 </Link>
@@ -135,11 +135,11 @@ export default function ChatPage() {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="rounded-2xl border border-line bg-surface px-4 py-3">
+            <div className="rounded-card border-2 border-brown bg-beige px-4 py-3">
               <span className="flex gap-1">
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-subtle [animation-delay:-0.3s]" />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-subtle [animation-delay:-0.15s]" />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-subtle" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brown/40 [animation-delay:-0.3s]" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brown/40 [animation-delay:-0.15s]" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brown/40" />
               </span>
             </div>
           </div>
@@ -148,7 +148,7 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t border-line py-4">
+      <div className="border-t border-brown py-4">
         <div className="flex gap-2">
           <input
             type="text"
@@ -167,7 +167,7 @@ export default function ChatPage() {
             Send
           </button>
         </div>
-        <p className="mt-2 text-xs text-subtle">
+        <p className="mt-2 text-xs text-brown/55">
           Free plan includes 5 messages per day.
         </p>
       </div>

@@ -48,14 +48,14 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm">
         <Link href="/landing" className="flex items-center justify-center gap-2.5">
           <ChefLogo size={32} href={null} priority />
-          <span className="font-display text-xl font-semibold text-ink">
+          <span className="font-display text-xl font-semibold text-brown">
             MealPlan Pro
           </span>
         </Link>
 
         <div className="card mt-8 p-8">
-          <h1 className="text-2xl font-semibold text-ink">Create your account</h1>
-          <p className="mt-1 text-sm text-muted">
+          <h1 className="text-2xl uppercase text-brown">Create your account</h1>
+          <p className="mt-1 text-sm text-brown/70">
             Free to start — no card required.
           </p>
 
@@ -128,11 +128,11 @@ export default function RegisterPage() {
           </form>
         </div>
 
-        <p className="mt-6 text-center text-sm text-muted">
+        <p className="mt-6 text-center text-sm text-brown/70">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-medium text-terracotta hover:text-terracotta-dark"
+            className="font-medium text-red hover:text-red"
           >
             Sign in
           </Link>

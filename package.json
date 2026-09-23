@@ -12,10 +12,12 @@
   },
   "dependencies": {
     "@google/genai": "^1.48.0",
+    "@gsap/react": "^2.1.2",
     "@prisma/client": "^6.19.3",
     "@stripe/stripe-js": "^9.0.1",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.0",
+    "gsap": "^3.15.0",
     "jsonwebtoken": "^9.0.3",
     "next": "16.2.2",
     "openai": "^6.33.0",

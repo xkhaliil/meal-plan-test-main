@@ -2,6 +2,49 @@
 
 Write-up of what was found, what was fixed, and what's left, per `TEST_INSTRUCTIONS.md`. All fixes below were verified against a running instance (curl for API-level checks, a signed-webhook simulation and a real Stripe test-mode subscription for the billing lifecycle, and a headless-browser pass for the UI flows).
 
+## Visual design: ported from cafebinocle.com
+
+The UI is styled after Café Binocle. That site is a **Shopify store on the Dawn theme (v15.2.0)**, so none of its code transfers to this Next.js app — the design was reimplemented from its published tokens rather than copied.
+
+Taken from the site's own `binocle-style.css` custom properties:
+
+| Token | Value | Use here |
+| --- | --- | --- |
+| `--theme-yellow` | `#FFE26E` | page background |
+| `--theme-beige` | `#FFFEEC` | cards and surfaces |
+| `--text-color` | `#594B3C` | text and all borders |
+| `--theme-red` | `#EF5B34` | primary CTA |
+| accents | `#00A881`, `#8AD7F7`, `#F8CCDF`, `#553EE7` | plan badges, highlight panels |
+
+Also carried over: the pill-heavy radius scale (50px pills, 25px cards, 50% circles), 2px brown outlines on everything, uppercase headings, the circular arrow buttons beside section headings, the scrolling ticker band (`app/components/Marquee.tsx`), and the rotating circular seal (`app/components/RotatingBadge.tsx`, from their `logo-rotate` keyframe) plus the `floating` keyframe.
+
+**Measured against the live site** (Playwright, 1440px viewport) rather than eyeballed, so dimensions and timings match exactly:
+
+| Element | Original | Here |
+| --- | --- | --- |
+| header height | 150px | 150px |
+| primary CTA pill | 220×76, 24px type, 50px radius, **brown text on red** (not white) | same |
+| circular icon buttons | 76×76, 2px border, 50% radius | same |
+| rotating seal | 417px layout size | 417px |
+| blue note pill | 364×91, 100px radius, `#8AD7F7` | same |
+| section headings | 152px / 152px line-height | 152px at `sm:` and up |
+| `logo-rotate` | 30s linear infinite | same |
+| `floating` | 2s linear infinite | same |
+
+Two measurement traps worth noting: `getBoundingClientRect()` on the seal returns the *rotated* bounding box (775px mid-spin for a 417px element, up to ~1.41× at 45°), so the real size had to come from `getComputedStyle().width`. And their CTA's label is brown `#594B3C`, not white — easy to assume wrong from a screenshot.
+
+**Landing page structure** mirrors theirs section-for-section, at the measured heights (total page 4399px vs their 4350px):
+
+1. header → 2. wordmark + seal + blue note → 3. split tagline row (480 illustration | 950 heading, 279px) → 4. marquee band (97px) → 5. "our recipes" heading row (256px) + two boxes (280px) + white banner (768px) → 6. statement paragraph at 52px/52px + 265×86 pill + 320×591 side image → 7. collaboration row (835 heading | 485 image, 448px) → 8. two-up question row (630+630, 299px) → 9. footer card (582px).
+
+Their animation set is small and is matched exactly: `logo-rotate` 30s linear, `floating` 2s linear, a looping marquee, and the animated wordmark. They have no scroll-reveal animations, so the GSAP reveals were dropped from this page (they remain on the app pages).
+
+**Hero wordmark.** Their giant wavy wordmark is set in a custom typeface ("Cimo") and shipped as inline SVG brand artwork, so it wasn't copied — that artwork is Café Binocle's mark. `app/components/WavyWordmark.tsx` reproduces the *treatment* instead: SVG `<text>` in Anton (heavy condensed, Google Fonts) run through `feTurbulence` → `feGaussianBlur` → `feDisplacementMap`. Blurring the noise before displacing is the important part — without it the filter produces gritty ragged edges rather than a smooth undulation. Noise frequency is low on X and higher on Y so displacement varies down the glyph height, making the vertical strokes wave. Their centre logo mark was likewise redrawn generically rather than copied.
+
+**Fonts.** Their display face is **Caprasimo**, which is on Google Fonts, so it's used directly. Their body face is **Founders Grotesk**, a commercial Klim licence — their font files were *not* copied; **Space Grotesk** stands in for it. Swapping in a licensed copy of Founders Grotesk would need a webfont licence.
+
+One structural note: the shared component classes (`.btn`, `.card`, `.input`, …) are wrapped in `@layer components` so Tailwind utilities still override them. Without the layer, `.card`'s background beat `bg-sky` on the Pro pricing card and the utility silently did nothing.
+
 ## UI/UX rework
 
 The app was rebuilt around a single minimal design system rather than per-page ad-hoc styling (previously every page had its own font, background colour, and button treatment — comic/serif mixes, a red nav bar, neon-purple landing page, GIFs plastered on every background).
@@ -13,6 +56,25 @@ The app was rebuilt around a single minimal design system rather than per-page a
 - **Responsive**: every route verified to fit without horizontal overflow at 390px; the app nav collapses to a two-row layout on small screens.
 - **Removed** `ClientChaosShell` and `CookingGifPlaster` (plus `lib/cookingGifSources.ts` and their env vars) — a hidden CPU/memory-burning overlay and scattered background GIFs that contradicted the product. Originals remain in commit `ad76ce1`.
 - **Ownership-aware UI**: the recipe Delete action now only renders on recipes the signed-in user owns, matching the authorization rules added server-side.
+
+### Motion (GSAP)
+
+Motion language is ported from khalilltaief.com so it reads consistently with the author's own work. `lib/motion.ts` registers GSAP + ScrollTrigger + SplitText + CustomEase and defines the shared tokens:
+
+- **Easings** are the portfolio's exact curves, registered via `CustomEase`: `0.215, 0.61, 0.355, 1` (reveals), `0.34, 1.64, 0.64, 1` (springy accents), `0.32, 0.72, 0, 1` (expo-out).
+- **Stagger** is 70ms, matching the `--index` stagger step used across the portfolio.
+- **`RevealText`** (`app/components/motion/RevealText.tsx`) does the masked line reveal — SplitText with `mask: "lines"`, each line sliding up out of an overflow-hidden mask, staggered. This is the portfolio's `data-intro-line` treatment.
+- **`Reveal`** (`app/components/motion/Reveal.tsx`) does scroll-triggered staggered entrances, equivalent to the portfolio's `data-scroll` hooks. It takes a `deps` prop because the app pages render their lists after an async fetch, so the animation has to re-run once data arrives.
+- **Button hover** uses a `::after` wipe layer that rises bottom-to-top over 0.45s — the portfolio's `button-bg` pattern — instead of an instant background swap.
+
+Applied generously on `/landing` (marketing) and sparingly inside the app (card/grid entrances only), so the product UI stays calm.
+
+**Accessibility and failure modes were explicitly handled**, since reveal animations start from `opacity: 0`:
+- `prefers-reduced-motion: reduce` skips all GSAP animation and forces final visible state (verified in a reduced-motion browser context: 26 reveal elements, 0 stuck hidden).
+- A `<noscript>` style forces reveal elements visible when JS is unavailable.
+- A browser assertion checks that no `[data-reveal-item]`/`[data-reveal-text]`/`.reveal-line` element is left below 0.95 opacity after animations settle — currently 0 stuck across the landing page and app.
+
+One gotcha worth recording: Turbopack served a stale CSS chunk after edits to `globals.css`, which made the hover wipe look like it wasn't working. Deleting `.next` and restarting resolved it. Lightning CSS also minifies `::after` to the equivalent single-colon `:after`, so grep for both when checking compiled output.
 
 ### Images
 

@@ -7,8 +7,8 @@ export default function CheckoutCancelPage() {
       <div className="w-full max-w-md text-center">
         <ChefLogo size={36} href={null} priority />
         <div className="card mt-6 p-10">
-          <h1 className="text-2xl font-semibold text-ink">Checkout cancelled</h1>
-          <p className="mt-2 text-sm text-muted">
+          <h1 className="text-2xl uppercase text-brown">Checkout cancelled</h1>
+          <p className="mt-2 text-sm text-brown/70">
             No charges were made. You&apos;re still on the free plan.
           </p>
           <div className="mt-7 flex flex-col gap-2">

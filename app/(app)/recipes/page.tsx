@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import Reveal from "@/app/components/motion/Reveal";
 import { useState, useEffect } from "react";
 
 interface Recipe {
@@ -73,8 +74,8 @@ export default function RecipesPage() {
     <div className="mx-auto max-w-6xl px-6 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold text-ink">Recipes</h1>
-          <p className="mt-1 text-sm text-muted">
+          <h1 className="text-3xl uppercase text-brown">Recipes</h1>
+          <p className="mt-1 text-sm text-brown/70">
             Your catalog — everything you can build a week around.
           </p>
         </div>
@@ -106,14 +107,18 @@ export default function RecipesPage() {
 
       {filteredRecipes.length === 0 ? (
         <div className="card mt-8 px-6 py-16 text-center">
-          <p className="text-sm text-muted">
+          <p className="text-sm text-brown/70">
             {recipes.length === 0
               ? "No recipes yet. Create one, or ask the Recipe Bot for an idea."
               : `No recipes match “${searchQuery}”.`}
           </p>
         </div>
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <Reveal
+          y={18}
+          deps={[recipes.length > 0]}
+          className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        >
           {filteredRecipes.map((recipe) => (
             <RecipeCard
               key={recipe.id}
@@ -122,7 +127,7 @@ export default function RecipesPage() {
               onDelete={handleDeleteRecipe}
             />
           ))}
-        </div>
+        </Reveal>
       )}
     </div>
   );
@@ -192,8 +197,8 @@ function CreateRecipeForm({
 
   return (
     <form onSubmit={handleSubmit} className="card mt-6 p-6">
-      <h2 className="text-lg font-semibold text-ink">New recipe</h2>
-      <p className="mt-1 text-sm text-muted">
+      <h2 className="text-lg uppercase text-brown">New recipe</h2>
+      <p className="mt-1 text-sm text-brown/70">
         Add something you cook often — you can schedule it into any week after.
       </p>
 
@@ -273,7 +278,7 @@ function CreateRecipeForm({
 
         <div>
           <label className="label" htmlFor="recipe-cuisine">
-            Cuisine <span className="text-subtle">(optional)</span>
+            Cuisine <span className="text-brown/55">(optional)</span>
           </label>
           <input
             id="recipe-cuisine"
@@ -286,7 +291,7 @@ function CreateRecipeForm({
 
         <div>
           <label className="label" htmlFor="recipe-tags">
-            Dietary tags <span className="text-subtle">(comma separated)</span>
+            Dietary tags <span className="text-brown/55">(comma separated)</span>
           </label>
           <input
             id="recipe-tags"
@@ -299,7 +304,7 @@ function CreateRecipeForm({
 
         <div className="sm:col-span-2">
           <label className="label" htmlFor="recipe-ingredients">
-            Ingredients <span className="text-subtle">— one per line: name, amount, unit</span>
+            Ingredients <span className="text-brown/55">— one per line: name, amount, unit</span>
           </label>
           <textarea
             id="recipe-ingredients"
@@ -352,13 +357,13 @@ function RecipeCard({
 
       <div className="flex flex-1 flex-col p-5">
         <Link href={`/recipes/${recipe.id}`}>
-          <h3 className="font-display text-lg font-semibold text-ink hover:text-terracotta">
+          <h3 className="font-display text-lg uppercase text-brown hover:text-red">
             {recipe.title}
           </h3>
         </Link>
-        <p className="mt-1.5 line-clamp-2 text-sm text-muted">{recipe.description}</p>
+        <p className="mt-1.5 line-clamp-2 text-sm text-brown/70">{recipe.description}</p>
 
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-subtle">
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-brown/55">
           <span>{recipe.prepTime + recipe.cookTime} min total</span>
           <span>Serves {recipe.servings}</span>
           {recipe.calories && <span>{recipe.calories} cal</span>}
@@ -374,17 +379,17 @@ function RecipeCard({
           </div>
         )}
 
-        <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
+        <div className="mt-5 flex items-center justify-between border-t border-brown pt-4">
           <Link
             href={`/recipes/${recipe.id}`}
-            className="text-sm font-medium text-terracotta hover:text-terracotta-dark"
+            className="text-sm font-medium text-red hover:text-red"
           >
             View recipe →
           </Link>
           {canDelete && (
             <button
               onClick={() => onDelete(recipe.id)}
-              className="text-xs text-subtle transition-colors hover:text-[#b3261e]"
+              className="text-xs text-brown/55 transition-colors hover:text-[#b3261e]"
             >
               Delete
             </button>
