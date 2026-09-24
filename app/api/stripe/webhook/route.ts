@@ -33,16 +33,35 @@ export async function POST(req: NextRequest) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
     const userId = session.metadata?.userId;
-    if (userId) {
+
+    if (!userId) {
+      // Payment taken, nobody upgraded. Silent before; now it's traceable.
+      console.error(
+        `checkout.session.completed ${session.id} has no metadata.userId — ` +
+          "the payer was not upgraded."
+      );
+    } else {
+      const subscriptionId =
+        typeof session.subscription === "string"
+          ? session.subscription
+          : (session.subscription?.id ?? null);
+
+      if (!subscriptionId) {
+        console.error(
+          `checkout.session.completed ${session.id} carried no subscription id; ` +
+            "cancelling later will not find it."
+        );
+      }
+
       await prisma.user.update({
         where: { id: userId },
         data: {
           plan: "pro",
-          stripeCustomerId: session.customer as string,
-          stripeSubscriptionId:
-            typeof session.subscription === "string"
-              ? session.subscription
-              : null,
+          stripeCustomerId:
+            typeof session.customer === "string"
+              ? session.customer
+              : (session.customer?.id ?? null),
+          stripeSubscriptionId: subscriptionId,
         },
       });
     }

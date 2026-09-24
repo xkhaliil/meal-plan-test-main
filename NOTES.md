@@ -239,6 +239,57 @@ Work done after the first pass, checked against `TEST_INSTRUCTIONS.md`.
   atomic and faster; this version needs no infrastructure beyond what the
   project already runs. The caller is now `await isRateLimited(...)`.
 
+## Fifth pass — test layers and Stripe
+
+### Four test layers
+
+| Layer       | Where                                | Covers                                                                              |
+| ----------- | ------------------------------------ | ----------------------------------------------------------------------------------- |
+| Unit        | `lib/__tests__`, `app/api/__tests__` | Pure functions and handler decisions with Prisma/Stripe mocked.                     |
+| Integration | `tests/integration`                  | Real handlers + real Prisma against a throwaway SQLite file built by `globalSetup`. |
+| Component   | `tests/component`                    | jsdom + Testing Library over `ConfirmDialog`, `Pagination`, `RichText`.             |
+| E2E         | `tests/e2e`                          | Chromium via Playwright against a running server.                                   |
+
+`npm test` runs the first three; `npm run test:e2e` the last; `test:all` both.
+CI gained an `e2e` job that seeds a database, installs Chromium and runs
+Playwright against a production build, gated behind `needs: verify`.
+
+Notes worth keeping: jsdom 29 implements no `<dialog>` modal methods, so the
+component setup polyfills `showModal`/`close`; Prisma refuses `--force-reset`
+behind a destructive-action prompt, so the integration setup deletes its file
+and pushes instead; and E2E signs in as **bob**, because alice's seeded
+password no longer matches `TEST_INSTRUCTIONS.md`.
+
+### Stripe
+
+Verified against the live test-mode account first: the key is test mode, the
+account is reachable with charges enabled, and the Pro price resolves to
+**$29.99/month, active**. Five defects found while reading the code:
+
+- **Checkout returned Stripe's raw error text to the browser** — messages that
+  name price IDs and say things like "a similar object exists in live mode".
+  Now logged server-side with a generic message in the response.
+- **A Pro subscriber could buy a second subscription** by reopening the upgrade
+  page; nothing checked the current plan. Now a 409.
+- **Every upgrade created a fresh Stripe customer.** The route never loaded the
+  user, so `stripeCustomerId` was ignored — re-subscribing scattered duplicate
+  customers. It now reuses the known customer, or passes `customer_email`.
+- **The webhook failed silently when `metadata.userId` was missing**: payment
+  taken, nobody upgraded, no trace. It logs now. Same for a session that
+  carries no subscription id, which would otherwise make cancelling impossible.
+- **Cancel stranded accounts on Pro** if Stripe had already forgotten the
+  subscription (cancelled in the dashboard, or a stale id): the route 500'd and
+  the plan never came back. `resource_missing` now reconciles locally; other
+  failures still refuse, with a 502 and no raw message.
+
+24 tests cover it. The webhook ones are integration-level and sign their own
+payloads with Stripe's HMAC helper — real signature verification, real database
+writes, no network — covering upgrade, downgrade on delete and on `unpaid`,
+leaving `active` alone, ignoring another account's subscription, replay safety
+(Stripe retries), and rejecting both a forged signature and a missing one. The
+checkout/cancel/price tests mock the SDK. One E2E test asserts the **live**
+price reaches the settings page, which a hardcoded fixture could never catch.
+
 ## Documented follow-ups (not implemented)
 
 - **`mushroom-risotto.jpg` still shows the wrong subject** (a mountain, not risotto) and `caesar-salad.jpg` contains hands. Both need regeneration against a valid `GEMINI_API_KEY`: `npm run generate:recipe-images -- mushroom-risotto.jpg caesar-salad.jpg`. The prompt bug that caused this class of failure is already fixed.

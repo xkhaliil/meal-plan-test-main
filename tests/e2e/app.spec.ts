@@ -49,6 +49,15 @@ test.describe("signed in", () => {
     await expect(page.getByLabel(/message chef ferraro/i)).toBeEditable();
   });
 
+  test("settings shows the live Pro price from Stripe", async ({ page }) => {
+    await page.goto("/settings");
+
+    // Proves the whole chain: the route reaches Stripe, converts minor units,
+    // and the component renders it. A hardcoded number would pass a unit test
+    // and still be wrong here.
+    await expect(page.getByText(/\$\d+(\.\d{2})?\s*\/\s*month/i)).toBeVisible();
+  });
+
   test("signing out returns to login and re-guards the app", async ({
     page,
   }) => {

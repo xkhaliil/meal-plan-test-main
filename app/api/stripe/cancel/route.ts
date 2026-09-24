@@ -20,8 +20,25 @@ export async function POST(req: NextRequest) {
   try {
     await stripe.subscriptions.cancel(user.stripeSubscriptionId);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Cancellation failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    // If Stripe no longer has the subscription (cancelled in the dashboard, or
+    // a stale id), refusing here would strand the account on "pro" forever
+    // with no way back. Treat it as already cancelled and reconcile locally.
+    const code =
+      err && typeof err === "object" && "code" in err
+        ? (err as { code?: string }).code
+        : undefined;
+
+    if (code !== "resource_missing") {
+      console.error("Stripe subscription cancellation failed:", err);
+      return NextResponse.json(
+        { error: "Could not cancel the subscription. Please try again." },
+        { status: 502 }
+      );
+    }
+    console.warn(
+      `Subscription ${user.stripeSubscriptionId} was already gone from Stripe; ` +
+        "downgrading locally."
+    );
   }
 
   // The webhook (customer.subscription.deleted) will also reconcile this
