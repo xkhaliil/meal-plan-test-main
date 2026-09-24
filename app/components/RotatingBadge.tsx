@@ -26,9 +26,16 @@ export default function RotatingBadge({
   // `relative` on the outer element would beat an `absolute` passed in, since
   // Tailwind emits `.relative` after `.absolute`.
   return (
-    <div className={`shrink-0 ${className}`} style={{ width: size, height: size }}>
+    <div
+      className={`shrink-0 ${className}`}
+      style={{ width: size, height: size }}
+    >
       <div className="relative h-full w-full">
-        <svg viewBox="0 0 200 200" className="logo-rotate h-full w-full" aria-hidden>
+        <svg
+          viewBox="0 0 200 200"
+          className="logo-rotate h-full w-full"
+          aria-hidden
+        >
           <defs>
             <path
               id={pathId}

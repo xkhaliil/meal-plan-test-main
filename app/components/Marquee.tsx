@@ -14,14 +14,14 @@ export default function Marquee({
 
   return (
     <div
-      className={`flex h-[97px] items-center overflow-hidden border-b-2 border-brown bg-yellow ${className}`}
+      className={`flex h-[68px] items-center overflow-hidden border-b-2 border-brown bg-yellow sm:h-[97px] ${className}`}
       aria-hidden
     >
       <div className="marquee-track">
         {sequence.map((item, i) => (
           <span
             key={`${item}-${i}`}
-            className="flex shrink-0 items-center whitespace-nowrap text-3xl uppercase leading-none tracking-tight text-brown sm:text-[44px]"
+            className="flex shrink-0 items-center whitespace-nowrap text-2xl uppercase leading-none tracking-tight text-brown sm:text-[44px]"
           >
             {item}
             <span className="mx-8 text-red">●</span>

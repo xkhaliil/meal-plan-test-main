@@ -1,4 +1,5 @@
 import AuthCta from "@/app/components/AuthCta";
+import ProPrice from "@/app/components/ProPrice";
 import CookIllustration from "@/app/components/CookIllustration";
 import LandingHeaderActions from "@/app/components/LandingHeaderActions";
 import Marquee from "@/app/components/Marquee";
@@ -6,6 +7,7 @@ import RotatingBadge from "@/app/components/RotatingBadge";
 import WavyWordmark from "@/app/components/WavyWordmark";
 import Image from "next/image";
 import Link from "next/link";
+import { MorphingText } from "@/components/ui/morphing-text";
 
 /**
  * Landing page laid out section-for-section against cafebinocle.com, using the
@@ -60,6 +62,20 @@ const WEEK = [
   { day: "Sun", meals: ["", "Tom Yum Soup", "Lamb Curry"] },
 ];
 
+// Kept in step with what the app actually enforces: the free plan is capped at
+// five Recipe Bot messages a day, and nothing else is limited today.
+const FREE_PLAN = [
+  "5 Recipe Bot messages a day",
+  "The full recipe catalog",
+  "Weekly meal plans and shopping lists",
+];
+
+const PRO_PLAN = [
+  "Unlimited Recipe Bot messages",
+  "AI-generated photos for every recipe",
+  "Everything in Free, with no daily cap",
+];
+
 const TICKER = [
   "Meal planner of the year",
   "Plan the week in minutes",
@@ -71,31 +87,77 @@ export default function LandingPage() {
     <div className="min-h-screen bg-yellow">
       {/* ---------- Header ---------- */}
       <header className="px-5 sm:px-[30px]">
-        <nav className="flex flex-wrap items-start justify-between gap-4 pt-6 sm:pt-[48px]">
-          <p className="w-[438px] max-w-full text-2xl font-bold uppercase leading-[1.05] tracking-tight text-brown sm:text-[40px] sm:leading-[45px]">
-            MealPlan<sup className="text-base"></sup>
+        <nav className="flex flex-col items-center gap-5 pt-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4 sm:pt-[48px]">
+          <p className="flex w-full max-w-full items-center justify-center text-center text-2xl font-bold uppercase leading-[1.05] tracking-tight text-brown sm:w-[438px] sm:text-[40px] sm:leading-[45px]">
+            MealPlan the App<sup className="text-base"></sup>
           </p>
 
           <LandingHeaderActions />
         </nav>
       </header>
 
-      <main>
+      <main id="main">
         {/* ---------- Hero: wordmark + seal + note ---------- */}
-        <section className="relative px-5 pt-4 sm:px-[30px] mt-14">
+        <section className="relative mt-8 px-5 pt-4 sm:mt-14 sm:px-[30px]">
           <h1 className="sr-only">MealPlan Pro</h1>
 
           {/* Wordmark row is 524px tall on the original, with the 417px seal
               overlapping its right end. */}
-          <div className="relative lg:h-[424px]">
-            <div className="w-full max-w-[973px] text-brown" aria-hidden>
-              <WavyWordmark text="Hey Cook" />
+          <div className="relative flex h-[48vh] min-h-[260px] items-center justify-center sm:h-[58vh] sm:min-h-[320px] lg:h-[624px]">
+            <div
+              className="h-full w-full max-w-[1273px] text-red lg:-mt-20"
+              aria-hidden
+            >
+              <MorphingText
+                texts={[
+                  "Hello Chef",
+                  "Pasta?",
+                  "Delicious Meals",
+                  "Healthier Eating",
+                  "Track Your Meals",
+                  "Plan Your Week",
+                  "Eat Better",
+                  "Organize Your Kitchen",
+                  "Discover New Recipes",
+                  "MealPlan Pro",
+                  "Avocado Toast?",
+                  "Tasty Dishes",
+                  "Quick & Easy Meals",
+                  "Family-Friendly Recipes",
+                  "Healthy Eating Made Simple",
+                  "Your Personal Meal Planner",
+                  "Cook Like a Pro",
+                  "MealPlan the App",
+                  "Plan Your Meals",
+                  "Discover New Flavors",
+                ]}
+                className="text-[clamp(2.5rem,13vw,180px)] font-bold uppercase leading-[0.9] tracking-tight "
+              />
             </div>
 
             <RotatingBadge
               text="DISCOVER MEALS · PLAN THE WEEK · EAT BETTER · "
-              className="absolute right-0 top-1 hidden text-brown lg:block"
-              size={417}
+              className="absolute right-0  top-96 hidden text-brown lg:block rotate-32"
+              size={317}
+            />
+          </div>
+        </section>
+
+        {/* ---------- Phone-only call to action under the hero ---------- */}
+        <section className="px-5 pb-10 lg:hidden">
+          <div className="flex flex-col items-center gap-3">
+            <AuthCta
+              className="flex h-14 w-full max-w-[420px] items-center justify-center rounded-pill border-2 border-brown bg-red text-base uppercase text-brown transition-colors hover:bg-brown hover:text-yellow"
+              signedOut={{ href: "/register", label: "Start planning free" }}
+              signedIn={{ href: "/meal-plans", label: "Plan this week" }}
+            />
+            <AuthCta
+              className="text-xs uppercase tracking-[0.2em] text-brown/60 transition-colors hover:text-red"
+              signedOut={{
+                href: "/login",
+                label: "Already have an account? Sign in",
+              }}
+              signedIn={{ href: "/recipes", label: "Open your catalog" }}
             />
           </div>
         </section>
@@ -105,13 +167,13 @@ export default function LandingPage() {
             480px cell, and the heading cell holds the h2 plus the floating
             note (`.binocle_floating`). */}
         <section className="border-y-2 border-brown">
-          <div className="flex min-h-[279px] flex-col sm:flex-row">
+          <div className="flex flex-col sm:min-h-[279px] sm:flex-row">
             <div className="flex w-full items-center justify-center border-b-2 border-brown px-6 py-8 sm:w-[480px] sm:shrink-0 sm:border-b-0 sm:border-r-2">
               <CookIllustration />
             </div>
 
             <div className="flex flex-1 flex-col justify-center gap-5 p-5 lg:flex-row lg:items-center lg:justify-between">
-              <h2 className="font-display text-4xl leading-[1.05] text-brown sm:text-[64px]">
+              <h2 className="font-display text-[clamp(1.75rem,5vw,64px)] leading-[1.05] text-brown">
                 Decide what&apos;s for dinner once a week!
               </h2>
             </div>
@@ -123,14 +185,14 @@ export default function LandingPage() {
 
         {/* ---------- The catalog: real dishes from the seed library ---------- */}
         <section className="border-b-2 border-brown px-5 py-12 sm:px-[30px]">
-          <div className="flex min-h-[256px] flex-col justify-between gap-6 md:flex-row md:items-start">
+          <div className="flex flex-col justify-between gap-6 md:min-h-[256px] md:flex-row md:items-start">
             <p className="max-w-[420px] text-lg leading-relaxed">
               Everything you cook, in one place. Ingredients, timings, servings
-              and dietary tags — structured and searchable, so a recipe you
-              loved in March is still one click away in November.
+              and dietary tags structured and searchable, so a recipe you loved
+              in March is still one click away in November.
             </p>
-            <div className="flex items-center gap-6">
-              <h2 className="font-display text-5xl uppercase leading-none text-brown sm:text-[152px] sm:leading-[152px]">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+              <h2 className="font-display text-[clamp(3rem,11vw,152px)] uppercase leading-none text-brown text-right">
                 Your catalog
               </h2>
               <AuthCta
@@ -147,7 +209,7 @@ export default function LandingPage() {
                 key={dish.title}
                 className="card overflow-hidden transition-colors hover:bg-white"
               >
-                <div className="relative h-52 border-b-2 border-brown">
+                <div className="relative h-44 border-b-2 border-brown sm:h-52">
                   <Image
                     src={dish.img}
                     alt={dish.title}
@@ -171,7 +233,7 @@ export default function LandingPage() {
         {/* ---------- The planner: what the product actually does ---------- */}
         <section className="border-b-2 border-brown px-5 py-12 sm:px-[30px]">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-            <h2 className="font-display text-5xl uppercase leading-none text-brown sm:text-[152px] sm:leading-[152px]">
+            <h2 className="font-display text-[clamp(3rem,11vw,152px)] uppercase leading-none text-brown">
               One week
             </h2>
             <p className="max-w-[420px] text-lg leading-relaxed">
@@ -180,9 +242,12 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+          <div className="no-scrollbar -mx-5 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 lg:grid-cols-7">
             {WEEK.map((column) => (
-              <div key={column.day} className="card p-4">
+              <div
+                key={column.day}
+                className="card w-[164px] shrink-0 snap-start p-4 sm:w-auto"
+              >
                 <h3 className="text-xl uppercase">{column.day}</h3>
                 <div className="mt-3 flex flex-col gap-2">
                   {MEAL_SLOTS.map((slot, i) => (
@@ -209,8 +274,8 @@ export default function LandingPage() {
         <section className="border-b-2 border-brown px-5 py-12 sm:px-[30px]">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-[560px]">
-              <h2 className="font-display text-5xl uppercase leading-none text-brown sm:text-[96px] sm:leading-[92px]">
-                Recipe Bot
+              <h2 className="font-display text-[clamp(2.5rem,8vw,96px)] uppercase leading-[0.96] text-brown">
+                Chef Ferraro
               </h2>
               <p className="mt-6 text-lg leading-relaxed">
                 Out of ideas? Describe a craving or a constraint. It writes a
@@ -251,11 +316,101 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* ---------- Plans ---------- */}
+        <section className="border-b-2 border-brown px-5 py-12 sm:px-[30px]">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <h2 className="font-display text-[clamp(3rem,11vw,152px)] uppercase leading-none text-brown">
+              Plans
+            </h2>
+            <p className="max-w-[420px] text-lg leading-relaxed">
+              Everything that makes a week work is free. Pro is for the cooks
+              who lean on the bot.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-5 md:grid-cols-2">
+            {/* Free */}
+            <article className="card flex flex-col p-6 sm:p-8">
+              <div className="flex flex-wrap items-baseline justify-between gap-4">
+                <h3 className="font-display text-4xl uppercase leading-none text-brown sm:text-[64px]">
+                  Free
+                </h3>
+                <span className="tag">No card needed</span>
+              </div>
+              <p className="mt-5 text-lg leading-relaxed">
+                Plan a normal week, start to finish.
+              </p>
+
+              <ul className="mt-7 space-y-3.5">
+                {FREE_PLAN.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3">
+                    <span
+                      aria-hidden
+                      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-brown bg-beige text-[0.6rem] text-brown"
+                    >
+                      ✓
+                    </span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+
+              {/* The wrapper owns the spacing so the pill keeps its height. */}
+              <div className="mt-auto pt-8">
+                <AuthCta
+                  className="flex h-14 w-full items-center justify-center rounded-pill border-2 border-brown text-base uppercase text-brown transition-colors hover:bg-brown hover:text-yellow"
+                  signedOut={{ href: "/register", label: "Start free" }}
+                  signedIn={{ href: "/recipes", label: "Open the app" }}
+                />
+              </div>
+            </article>
+
+            {/* Pro */}
+            <article className="flex flex-col rounded-card border-2 border-brown bg-red p-6 text-white sm:p-8">
+              <div className="flex flex-wrap items-baseline justify-between gap-4">
+                <h3 className="font-display text-4xl uppercase leading-none sm:text-[64px]">
+                  Pro
+                </h3>
+                <span className="rounded-pill border-2 border-brown bg-yellow px-3 py-0.5 text-xs uppercase tracking-wide text-brown">
+                  Cancel anytime
+                </span>
+              </div>
+              <p className="mt-5 text-lg leading-relaxed">
+                For the weeks you cook properly.
+              </p>
+
+              <ul className="mt-7 space-y-3.5">
+                {PRO_PLAN.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3">
+                    <span
+                      aria-hidden
+                      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-brown bg-yellow text-[0.6rem] text-brown"
+                    >
+                      ✓
+                    </span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+
+              {/* The wrapper owns the spacing so the pill keeps its height. */}
+              <div className="mt-auto pt-8">
+                <AuthCta
+                  className="flex h-14 w-full items-center justify-center rounded-pill border-2 border-brown bg-beige text-base uppercase text-brown transition-colors hover:bg-brown hover:text-yellow"
+                  signedOut={{ href: "/register", label: "Get Pro" }}
+                  signedIn={{ href: "/settings", label: "Upgrade to Pro" }}
+                />
+                <ProPrice className="mt-3 block text-center text-xs uppercase tracking-wide opacity-80" />
+              </div>
+            </article>
+          </div>
+        </section>
+
         {/* ---------- Big question row: two 630 halves ---------- */}
         <section className="px-5 pb-0 pt-[30px] sm:px-[30px]">
-          <div className="flex min-h-[266px] flex-col items-center justify-between gap-8 lg:flex-row">
+          <div className="flex flex-col items-center justify-between gap-8 lg:min-h-[266px] lg:flex-row">
             <div className="w-full lg:w-[630px]">
-              <h2 className="font-display text-5xl uppercase leading-none text-brown sm:text-[152px] sm:leading-[152px]">
+              <h2 className="font-display text-[clamp(3rem,11vw,152px)] uppercase leading-none text-brown">
                 Hungry yet?
               </h2>
             </div>
@@ -271,8 +426,8 @@ export default function LandingPage() {
       </main>
 
       {/* ---------- Footer ---------- */}
-      <footer className="p-[30px]">
-        <div className="card p-8">
+      <footer className="p-4 sm:p-[30px]">
+        <div className="card p-5 sm:p-8">
           <div className="grid gap-8 md:grid-cols-3">
             <div>
               <h2 className="text-2xl uppercase">Contact</h2>
@@ -316,7 +471,9 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t-2 border-brown pt-6">
-            <p className="text-sm">© {new Date().getFullYear()}, MealPlan Pro</p>
+            <p className="text-sm">
+              © {new Date().getFullYear()}, MealPlan Pro
+            </p>
             <AuthCta
               className="text-lg hover:underline"
               signedOut={{ href: "/login", label: "Sign in" }}

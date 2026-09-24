@@ -1,0 +1,3 @@
+# Formats and lints only what's staged. The full suite runs in CI — a commit
+# hook that ran every test would be slow enough that people bypass it.
+npx lint-staged

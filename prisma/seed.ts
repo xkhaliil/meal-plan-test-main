@@ -586,7 +586,7 @@ async function main() {
       {
         role: "assistant",
         content:
-          'Here\'s a quick teriyaki chicken rice bowl:\n\nIngredients:\n- 2 chicken thighs\n- 1 cup rice\n- 3 tbsp soy sauce\n- 2 tbsp mirin\n- 1 tbsp honey\n- 1 tsp ginger\n- Sesame seeds and green onion for garnish\n\nInstructions:\n1. Cook rice per package directions\n2. Mix soy sauce, mirin, honey, and ginger for teriyaki sauce\n3. Grill or pan-fry chicken thighs 6 min per side\n4. Slice chicken and arrange over rice\n5. Drizzle with teriyaki sauce and garnish',
+          "Here's a quick teriyaki chicken rice bowl:\n\nIngredients:\n- 2 chicken thighs\n- 1 cup rice\n- 3 tbsp soy sauce\n- 2 tbsp mirin\n- 1 tbsp honey\n- 1 tsp ginger\n- Sesame seeds and green onion for garnish\n\nInstructions:\n1. Cook rice per package directions\n2. Mix soy sauce, mirin, honey, and ginger for teriyaki sauce\n3. Grill or pan-fry chicken thighs 6 min per side\n4. Slice chicken and arrange over rice\n5. Drizzle with teriyaki sauce and garnish",
         userId: alice.id,
       },
       {

@@ -18,7 +18,14 @@ type RevealProps = {
   /** Travel distance in px. */
   y?: number;
   delay?: number;
-  /** ScrollTrigger start position. */
+  /**
+   * Hold the content hidden until the wrapper scrolls into view. Off by
+   * default: a block that starts below the trigger line — which any grid under
+   * a tall masthead does — would otherwise sit blank until the reader scrolls,
+   * with nothing on screen saying there's anything to scroll to.
+   */
+  onScroll?: boolean;
+  /** ScrollTrigger start position. Only used with `onScroll`. */
   start?: string;
   as?: "div" | "section" | "ul";
   /**
@@ -34,6 +41,7 @@ export default function Reveal({
   selector = "[data-reveal-item]",
   y = 24,
   delay = 0,
+  onScroll = false,
   start = "top 85%",
   as: Tag = "div",
   deps = [],
@@ -63,7 +71,9 @@ export default function Reveal({
           ease: EASE.reveal,
           stagger: STAGGER,
           delay,
-          scrollTrigger: { trigger: root.current, start, once: true },
+          ...(onScroll
+            ? { scrollTrigger: { trigger: root.current, start, once: true } }
+            : {}),
         }
       );
     },

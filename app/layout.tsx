@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
-import { Anton, Caprasimo, Space_Grotesk } from "next/font/google";
+import { Anton, Caprasimo, Space_Grotesk, Geist } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+import AuthHydrator from "@/app/components/AuthHydrator";
+import PageTransition from "@/app/components/motion/PageTransition";
+import SmoothScroll from "@/app/components/motion/SmoothScroll";
+
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 // Caprasimo is the display face cafebinocle.com uses (it's on Google Fonts).
 // Its body face is Founders Grotesk, which is a commercial Klim licence, so
@@ -41,7 +47,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`h-full ${caprasimo.variable} ${grotesk.variable} ${anton.variable}`}
+      className={cn(
+        "h-full",
+        caprasimo.variable,
+        grotesk.variable,
+        anton.variable,
+        "font-sans",
+        geist.variable
+      )}
     >
       <head>
         <noscript>
@@ -49,7 +62,17 @@ export default function RootLayout({
           <style>{`[data-reveal-item],[data-reveal-text]{opacity:1!important}`}</style>
         </noscript>
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      {/* Extensions (ColorZilla, Grammarly and friends) add attributes to
+          <body> before React hydrates. This silences the attribute diff on
+          this element only — children are still checked as normal. */}
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <a href="#main" className="skip-link btn btn-primary">
+          Skip to content
+        </a>
+        <AuthHydrator />
+        <SmoothScroll />
+        <PageTransition>{children}</PageTransition>
+      </body>
     </html>
   );
 }

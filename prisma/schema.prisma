@@ -35,7 +35,7 @@ model Recipe {
   dietaryTags String?
   ingredients Ingredient[]
   userId      String
-  user        User             @relation(fields: [userId], references: [id])
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   mealPlans   MealPlanRecipe[]
   createdAt   DateTime         @default(now())
 }
@@ -46,7 +46,7 @@ model Ingredient {
   amount   String
   unit     String
   recipeId String
-  recipe   Recipe @relation(fields: [recipeId], references: [id])
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 }
 
 model MealPlan {
@@ -55,7 +55,7 @@ model MealPlan {
   startDate DateTime
   endDate   DateTime
   userId    String
-  user      User             @relation(fields: [userId], references: [id])
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   recipes   MealPlanRecipe[]
   createdAt DateTime         @default(now())
 }
@@ -65,9 +65,9 @@ model MealPlanRecipe {
   day        String
   mealType   String
   recipeId   String
-  recipe     Recipe   @relation(fields: [recipeId], references: [id])
+  recipe     Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   mealPlanId String
-  mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id])
+  mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
 }
 
 model ChatMessage {
@@ -75,6 +75,25 @@ model ChatMessage {
   role      String
   content   String
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+
+  // Cleared from the transcript and the model's context, but still counted by
+  // the free-plan daily quota — otherwise "new conversation" would refund it.
+  archived  Boolean  @default(false)
+}
+
+/// One recorded request for a rate-limited action.
+///
+/// Rate limiting used to be an in-process Map: it reset on every restart and
+/// each server instance counted separately, so N instances meant N times the
+/// allowance. The database is already shared and durable, so the window is
+/// counted here instead. (Redis would be faster and atomic; this needs no
+/// extra infrastructure to run or review.)
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
 }

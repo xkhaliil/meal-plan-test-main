@@ -4,6 +4,7 @@ import ChefLogo from "@/app/components/ChefLogo";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/stores/authStore";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -31,15 +32,21 @@ export default function LoginPage() {
       return;
     }
 
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-    router.push("/recipes");
+    // Writes storage, fills the store and notifies other tabs in one call.
+    useAuthStore.getState().signIn(data.user, data.token);
+    // Read from the URL directly: useSearchParams would force this page into
+    // client-side rendering unless it were wrapped in a Suspense boundary.
+    const next = new URLSearchParams(window.location.search).get("next");
+    router.push(next && next.startsWith("/") ? next : "/recipes");
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm">
-        <Link href="/landing" className="flex items-center justify-center gap-2.5">
+        <Link
+          href="/landing"
+          className="flex items-center justify-center gap-2.5"
+        >
           <ChefLogo size={32} href={null} priority />
           <span className="font-display text-xl font-semibold text-brown">
             MealPlan Pro
@@ -83,7 +90,11 @@ export default function LoginPage() {
               />
             </div>
 
-            <button type="submit" disabled={busy} className="btn btn-primary w-full">
+            <button
+              type="submit"
+              disabled={busy}
+              className="btn btn-primary w-full"
+            >
               {busy ? "Signing in..." : "Sign in"}
             </button>
           </form>

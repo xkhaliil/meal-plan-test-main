@@ -125,20 +125,8 @@ export default function CookIllustration() {
         <ellipse cx="126" cy="112" rx="15" ry="21" fill="#fff" />
 
         {/* pupils — these follow the cursor */}
-        <circle
-          ref={leftPupil}
-          cx="80"
-          cy="113"
-          r="7"
-          fill="#594B3C"
-        />
-        <circle
-          ref={rightPupil}
-          cx="126"
-          cy="113"
-          r="7"
-          fill="#594B3C"
-        />
+        <circle ref={leftPupil} cx="80" cy="113" r="7" fill="#594B3C" />
+        <circle ref={rightPupil} cx="126" cy="113" r="7" fill="#594B3C" />
 
         {/* smile */}
         <path

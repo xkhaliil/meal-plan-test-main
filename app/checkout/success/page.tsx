@@ -13,7 +13,9 @@ export default function CheckoutSuccessPage() {
           >
             ✓
           </span>
-          <h1 className="mt-5 text-2xl uppercase text-brown">You&apos;re on Pro</h1>
+          <h1 className="mt-5 text-2xl uppercase text-brown">
+            You&apos;re on Pro
+          </h1>
           <p className="mt-2 text-sm text-brown/70">
             Unlimited Recipe Bot access is active on your account.
           </p>

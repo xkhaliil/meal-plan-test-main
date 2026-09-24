@@ -4,6 +4,10 @@ export const metadata: Metadata = {
   title: "Landing",
 };
 
-export default function LandingLayout({ children }: { children: React.ReactNode }) {
+export default function LandingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return children;
 }

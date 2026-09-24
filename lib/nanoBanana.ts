@@ -55,7 +55,9 @@ export async function generateImagenImageBuffer(
   return Buffer.from(b64, "base64");
 }
 
-export async function generateRecipeImage(imagePrompt: string): Promise<string> {
+export async function generateRecipeImage(
+  imagePrompt: string
+): Promise<string> {
   const buf = await generateImagenImageBuffer({
     prompt: imagePrompt,
     aspectRatio: "4:3",

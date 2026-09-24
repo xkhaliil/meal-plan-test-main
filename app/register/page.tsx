@@ -4,6 +4,7 @@ import ChefLogo from "@/app/components/ChefLogo";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/stores/authStore";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -38,15 +39,18 @@ export default function RegisterPage() {
       return;
     }
 
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    // Writes storage, fills the store and notifies other tabs in one call.
+    useAuthStore.getState().signIn(data.user, data.token);
     router.push("/recipes");
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm">
-        <Link href="/landing" className="flex items-center justify-center gap-2.5">
+        <Link
+          href="/landing"
+          className="flex items-center justify-center gap-2.5"
+        >
           <ChefLogo size={32} href={null} priority />
           <span className="font-display text-xl font-semibold text-brown">
             MealPlan Pro
@@ -122,7 +126,11 @@ export default function RegisterPage() {
               />
             </div>
 
-            <button type="submit" disabled={busy} className="btn btn-primary w-full">
+            <button
+              type="submit"
+              disabled={busy}
+              className="btn btn-primary w-full"
+            >
               {busy ? "Creating account..." : "Create account"}
             </button>
           </form>
@@ -130,10 +138,7 @@ export default function RegisterPage() {
 
         <p className="mt-6 text-center text-sm text-brown/70">
           Already have an account?{" "}
-          <Link
-            href="/login"
-            className="font-medium text-red hover:text-red"
-          >
+          <Link href="/login" className="font-medium text-red hover:text-red">
             Sign in
           </Link>
         </p>

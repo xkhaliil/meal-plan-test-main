@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import type OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
 import { openai } from "@/lib/openai";
@@ -6,11 +6,17 @@ import { getUserFromRequest } from "@/lib/auth";
 import { generateRecipeImage } from "@/lib/nanoBanana";
 import { validateRecipeInput } from "@/lib/recipeInput";
 import { isRateLimited } from "@/lib/rateLimit";
+import { withTimeout } from "@/lib/withTimeout";
 
 const CHAT_MODEL = "gpt-4o-mini";
 const MAX_MESSAGE_LENGTH = 4000;
 const RATE_LIMIT_PER_HOUR = 20;
 const FREE_PLAN_DAILY_MESSAGE_LIMIT = 5;
+/** How many past messages the model is given, and the UI shows. */
+const HISTORY_WINDOW = 50;
+/** Upstream budgets: the reply is worth waiting for, the photo isn't. */
+const CHAT_TIMEOUT_MS = 30_000;
+const IMAGE_TIMEOUT_MS = 25_000;
 
 const SYSTEM_PROMPT = `You are Chef Ferraro, a helpful cooking assistant.
 You help users find and create recipes. Be friendly and helpful.
@@ -53,10 +59,18 @@ const RECIPE_TOOL: OpenAI.Chat.Completions.ChatCompletionTool = {
         },
         imagePrompt: {
           type: "string",
-          description: "A short visual description of the finished dish, for image generation",
+          description:
+            "A short visual description of the finished dish, for image generation",
         },
       },
-      required: ["title", "description", "prepTime", "cookTime", "servings", "ingredients"],
+      required: [
+        "title",
+        "description",
+        "prepTime",
+        "cookTime",
+        "servings",
+        "ingredients",
+      ],
     },
   },
 };
@@ -67,13 +81,61 @@ function startOfTodayUtc(): Date {
   return d;
 }
 
+/**
+ * What's left of today's allowance. Counted the same way the POST handler
+ * enforces it, so the number shown and the number applied can't drift apart.
+ */
+async function dailyQuota(userId: string, plan: string) {
+  if (plan === "pro") {
+    return {
+      plan,
+      limit: null as number | null,
+      used: 0,
+      remaining: null as number | null,
+    };
+  }
+
+  const used = await prisma.chatMessage.count({
+    where: { userId, role: "user", createdAt: { gte: startOfTodayUtc() } },
+  });
+
+  return {
+    plan,
+    limit: FREE_PLAN_DAILY_MESSAGE_LIMIT,
+    used,
+    remaining: Math.max(0, FREE_PLAN_DAILY_MESSAGE_LIMIT - used),
+  };
+}
+
+/** The transcript the model is working from, plus what's left of the quota. */
 export async function GET(req: NextRequest) {
   const session = getUserFromRequest(req);
   if (!session) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  return NextResponse.json({ model: CHAT_MODEL });
+  const user = await prisma.user.findUnique({ where: { id: session.userId } });
+  if (!user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  // Newest 50, back in reading order — the same window POST sends the model.
+  const recent = await prisma.chatMessage.findMany({
+    where: { userId: session.userId, archived: false },
+    orderBy: { createdAt: "desc" },
+    take: HISTORY_WINDOW,
+  });
+
+  return NextResponse.json({
+    model: CHAT_MODEL,
+    messages: [...recent].reverse().map((m) => ({
+      id: m.id,
+      role: m.role,
+      content: m.content,
+      createdAt: m.createdAt,
+    })),
+    quota: await dailyQuota(session.userId, user.plan),
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -86,7 +148,10 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 }
+    );
   }
 
   const { message } = body as { message?: unknown };
@@ -100,7 +165,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (isRateLimited(session.userId, RATE_LIMIT_PER_HOUR, 60 * 60 * 1000)) {
+  if (
+    await isRateLimited(session.userId, RATE_LIMIT_PER_HOUR, 60 * 60 * 1000)
+  ) {
     return NextResponse.json(
       { error: "Too many requests. Please slow down and try again shortly." },
       { status: 429 }
@@ -134,11 +201,12 @@ export async function POST(req: NextRequest) {
     data: { role: "user", content: message, userId: session.userId },
   });
 
-  const history = await prisma.chatMessage.findMany({
-    where: { userId: session.userId },
-    orderBy: { createdAt: "asc" },
-    take: 50,
+  const recent = await prisma.chatMessage.findMany({
+    where: { userId: session.userId, archived: false },
+    orderBy: { createdAt: "desc" },
+    take: HISTORY_WINDOW,
   });
+  const history = [...recent].reverse();
 
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
     { role: "system", content: SYSTEM_PROMPT },
@@ -150,16 +218,22 @@ export async function POST(req: NextRequest) {
 
   let completion;
   try {
-    completion = await openai.chat.completions.create({
-      model: CHAT_MODEL,
-      messages,
-      tools: [RECIPE_TOOL],
-      tool_choice: "auto",
-    });
+    completion = await openai.chat.completions.create(
+      {
+        model: CHAT_MODEL,
+        messages,
+        tools: [RECIPE_TOOL],
+        tool_choice: "auto",
+      },
+      { timeout: CHAT_TIMEOUT_MS }
+    );
   } catch (err) {
     console.error("OpenAI chat completion failed:", err);
     return NextResponse.json(
-      { error: "Chef Ferraro is unavailable right now. Please try again shortly." },
+      {
+        error:
+          "Chef Ferraro is unavailable right now. Please try again shortly.",
+      },
       { status: 502 }
     );
   }
@@ -170,17 +244,30 @@ export async function POST(req: NextRequest) {
   let assistantReply: string;
   let createdRecipe = null;
 
-  if (toolCall && toolCall.type === "function" && toolCall.function.name === "create_recipe") {
+  if (
+    toolCall &&
+    toolCall.type === "function" &&
+    toolCall.function.name === "create_recipe"
+  ) {
     let args: Record<string, unknown>;
     try {
       args = JSON.parse(toolCall.function.arguments);
     } catch (err) {
       console.error("Failed to parse create_recipe tool arguments:", err);
-      assistantReply = "I tried to save that recipe but the details came back malformed. Could you try again?";
+      assistantReply =
+        "I tried to save that recipe but the details came back malformed. Could you try again?";
       await prisma.chatMessage.create({
-        data: { role: "assistant", content: assistantReply, userId: session.userId },
+        data: {
+          role: "assistant",
+          content: assistantReply,
+          userId: session.userId,
+        },
       });
-      return NextResponse.json({ message: assistantReply, recipe: null, model: CHAT_MODEL });
+      return NextResponse.json({
+        message: assistantReply,
+        recipe: null,
+        model: CHAT_MODEL,
+      });
     }
 
     const validated = validateRecipeInput(args);
@@ -208,20 +295,35 @@ export async function POST(req: NextRequest) {
 
         assistantReply = `I've created "${createdRecipe.title}" and added it to your recipe catalog!`;
 
-        try {
+        // "AI-generated photos for every recipe" is sold as a Pro feature, and
+        // each call costs money — so free accounts keep the placeholder.
+        if (user.plan === "pro") {
           const imagePromptRaw = args.imagePrompt ?? args.image_prompt;
           const imagePrompt =
             typeof imagePromptRaw === "string" && imagePromptRaw.trim()
               ? imagePromptRaw
               : `A delicious ${createdRecipe.title}`;
-          const imageUrl = await generateRecipeImage(imagePrompt);
-          createdRecipe = await prisma.recipe.update({
-            where: { id: createdRecipe.id },
-            data: { imageUrl },
-            include: { ingredients: true },
+          const recipeId = createdRecipe.id;
+
+          // Generated *after* the response is sent. Image generation takes
+          // tens of seconds, and the recipe is already saved — the reply
+          // shouldn't wait on a photo. The catalog picks it up on next load.
+          after(async () => {
+            try {
+              const imageUrl = await withTimeout(
+                generateRecipeImage(imagePrompt),
+                IMAGE_TIMEOUT_MS,
+                "Recipe image generation"
+              );
+              await prisma.recipe.update({
+                where: { id: recipeId },
+                data: { imageUrl },
+              });
+            } catch (err) {
+              // The seeded placeholder stays; nothing user-facing breaks.
+              console.error("Recipe image generation failed:", err);
+            }
           });
-        } catch (err) {
-          console.error("Recipe image generation failed:", err);
         }
       } catch (err) {
         console.error("Failed to persist recipe from chat tool call:", err);
@@ -229,16 +331,45 @@ export async function POST(req: NextRequest) {
       }
     }
   } else {
-    assistantReply = responseMessage.content || "Sorry, I didn't catch that — could you rephrase?";
+    assistantReply =
+      responseMessage.content ||
+      "Sorry, I didn't catch that — could you rephrase?";
   }
 
   await prisma.chatMessage.create({
-    data: { role: "assistant", content: assistantReply, userId: session.userId },
+    data: {
+      role: "assistant",
+      content: assistantReply,
+      userId: session.userId,
+    },
   });
 
   return NextResponse.json({
     message: assistantReply,
     recipe: createdRecipe,
     model: CHAT_MODEL,
+    quota: await dailyQuota(session.userId, user.plan),
   });
+}
+
+/**
+ * Start a new conversation.
+ *
+ * Archives rather than deletes: the free-plan daily limit is enforced by
+ * counting stored messages, so deleting them would hand the allowance back and
+ * make the paywall trivially bypassable. Archived rows drop out of the
+ * transcript and the model's context, and still count toward the quota.
+ */
+export async function DELETE(req: NextRequest) {
+  const session = getUserFromRequest(req);
+  if (!session) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const { count } = await prisma.chatMessage.updateMany({
+    where: { userId: session.userId, archived: false },
+    data: { archived: true },
+  });
+
+  return NextResponse.json({ success: true, archived: count });
 }

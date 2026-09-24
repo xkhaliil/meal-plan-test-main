@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useAuthUser } from "@/lib/useAuthUser";
 
 const PILL =
-  "flex h-14 items-center justify-center rounded-pill bg-red px-6 text-base uppercase text-brown transition-all duration-300 hover:bg-brown hover:text-yellow sm:h-[76px] sm:w-[220px] sm:px-0 sm:text-2xl";
+  "flex h-14 shrink-0 items-center justify-center rounded-pill bg-red px-5 text-sm uppercase text-brown transition-all duration-300 hover:bg-brown hover:text-yellow sm:h-[76px] sm:w-[220px] sm:px-0 sm:text-2xl";
 const CIRCLE =
-  "flex h-14 w-14 items-center justify-center rounded-full border-2 border-brown text-sm uppercase transition-all duration-300 hover:bg-brown hover:text-yellow sm:h-[76px] sm:w-[76px] sm:text-lg";
+  "flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-brown text-xs uppercase transition-all duration-300 hover:bg-brown hover:text-yellow sm:h-[76px] sm:w-[76px] sm:text-lg";
 
 export default function LandingHeaderActions() {
   const user = useAuthUser();
@@ -14,11 +14,15 @@ export default function LandingHeaderActions() {
   if (user) {
     const initial = user.name?.trim().charAt(0).toUpperCase() || "?";
     return (
-      <div className="flex items-center gap-4 sm:gap-5">
+      <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:w-auto sm:gap-5">
         <Link href="/recipes" className={PILL}>
           Start cooking
         </Link>
-        <Link href="/meal-plans" className={CIRCLE} title="Your meal plans">
+        <Link
+          href="/meal-plans"
+          className={`${CIRCLE} hidden sm:flex`}
+          title="Your meal plans"
+        >
           Plans
         </Link>
         <Link
@@ -34,13 +38,13 @@ export default function LandingHeaderActions() {
   }
 
   return (
-    <div className="flex items-center gap-4 sm:gap-5">
+    <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:w-auto sm:gap-5">
       <Link href="/register" className={PILL}>
         Get started
       </Link>
       <Link
         href="/recipes"
-        className={CIRCLE}
+        className={`${CIRCLE} hidden sm:flex`}
         title="Browse the recipe catalog"
       >
         Browse

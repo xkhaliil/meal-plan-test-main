@@ -1,0 +1,65 @@
+name: CI
+
+# Runs on every PR into main, and on main itself so the branch protection rule
+# has a status to require.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# A new push to the same PR cancels the run still in flight.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Format, lint, types, tests, build
+    runs-on: ubuntu-latest
+
+    env:
+      # The app reads these at module scope, so a build fails without them.
+      # CI never talks to the real services: these are placeholders, and the
+      # test suite mocks Prisma rather than opening the database.
+      DATABASE_URL: "file:./ci.db"
+      JWT_SECRET: "ci-secret-not-used-outside-this-job"
+      OPENAI_API_KEY: "sk-ci-placeholder"
+      GEMINI_API_KEY: "ci-placeholder"
+      STRIPE_SECRET_KEY: "sk_test_ci_placeholder"
+      STRIPE_WEBHOOK_SECRET: "whsec_ci_placeholder"
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_ci_placeholder"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # `npm ci` over `npm install`: it installs exactly the lockfile and fails
+      # if package.json and the lock have drifted apart.
+      - name: Install dependencies
+        run: npm ci
+
+      # The Prisma client is generated code; without this, typecheck and build
+      # can't resolve the model types.
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      # Last, because it's the slowest and the others localise failures better.
+      - name: Build
+        run: npm run build

@@ -5,14 +5,27 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  // Without these the non-null assertions below turned a config mistake into a
+  // confusing "invalid signature" 400.
+  if (!webhookSecret) {
+    console.error("STRIPE_WEBHOOK_SECRET is not set; cannot verify webhooks.");
+    return NextResponse.json(
+      { error: "Webhook signing is not configured" },
+      { status: 500 }
+    );
+  }
+  if (!signature) {
+    return NextResponse.json(
+      { error: "Missing stripe-signature header" },
+      { status: 400 }
+    );
+  }
 
   let event;
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature!,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
@@ -27,7 +40,9 @@ export async function POST(req: NextRequest) {
           plan: "pro",
           stripeCustomerId: session.customer as string,
           stripeSubscriptionId:
-            typeof session.subscription === "string" ? session.subscription : null,
+            typeof session.subscription === "string"
+              ? session.subscription
+              : null,
         },
       });
     }
@@ -40,7 +55,9 @@ export async function POST(req: NextRequest) {
     const subscription = event.data.object;
     const isInactive =
       event.type === "customer.subscription.deleted" ||
-      ["canceled", "unpaid", "incomplete_expired"].includes(subscription.status);
+      ["canceled", "unpaid", "incomplete_expired"].includes(
+        subscription.status
+      );
 
     if (isInactive) {
       const user = await prisma.user.findFirst({

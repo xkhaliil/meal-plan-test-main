@@ -73,7 +73,8 @@ export function validateRecipeInput(
       result.calories = null;
     } else {
       const n = toNonNegativeInt(body.calories);
-      if (n === undefined) return { error: "calories must be a non-negative number" };
+      if (n === undefined)
+        return { error: "calories must be a non-negative number" };
       result.calories = n;
     }
   }

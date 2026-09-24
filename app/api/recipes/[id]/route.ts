@@ -8,6 +8,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const session = getUserFromRequest(req);
+  if (!session) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
 
   const recipe = await prisma.recipe.findUnique({
     where: { id },
@@ -59,7 +63,18 @@ export async function PUT(
       calories: validated.calories,
       cuisine: validated.cuisine,
       dietaryTags: validated.dietaryTags,
+      // An edited ingredient list replaces the old one wholesale; rows have no
+      // stable identity to diff against. Left out entirely, it's untouched.
+      ...(validated.ingredients
+        ? {
+            ingredients: {
+              deleteMany: {},
+              create: validated.ingredients,
+            },
+          }
+        : {}),
     },
+    include: { ingredients: true },
   });
 
   return NextResponse.json({ recipe });
