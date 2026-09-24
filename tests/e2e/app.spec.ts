@@ -49,9 +49,23 @@ test.describe("signed in", () => {
     await expect(page.getByLabel(/message chef ferraro/i)).toBeEditable();
   });
 
-  test("settings shows the live Pro price from Stripe", async ({ page }) => {
-    await page.goto("/settings");
+  test("settings shows the live Pro price from Stripe", async ({
+    page,
+    request,
+  }) => {
+    // Needs a real price configured (STRIPE_PRICE_ID or STRIPE_PRO_PRODUCT_ID).
+    // CI runs with placeholder keys, where the endpoint correctly answers with
+    // a null amount and the UI correctly falls back to "billed monthly" — so
+    // skip rather than assert a number that is not supposed to exist there.
+    const price = await (await request.get("/api/stripe/price")).json();
+    test.skip(
+      price.amount === null,
+      "Stripe price is not configured in this environment"
+    );
 
+    expect(price.amount).toBeGreaterThan(0);
+
+    await page.goto("/settings");
     // Proves the whole chain: the route reaches Stripe, converts minor units,
     // and the component renders it. A hardcoded number would pass a unit test
     // and still be wrong here.

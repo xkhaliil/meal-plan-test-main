@@ -92,6 +92,13 @@ Two things worth knowing:
 - They sign in as **bob@example.com**, not alice — alice is the Pro account, but
   her seeded password no longer matches `TEST_INSTRUCTIONS.md`. Re-run
   `npx prisma db seed` to restore it (that wipes all data first).
+- **The live-price test skips itself when Stripe isn't configured.** It asks
+  `/api/stripe/price` first: with a real `STRIPE_PRICE_ID` (or
+  `STRIPE_PRO_PRODUCT_ID`) it asserts the figure reaches the settings page;
+  with CI's placeholder keys the endpoint answers `amount: null`, the UI falls
+  back to "billed monthly", and the test reports skipped rather than failing.
+  Add `STRIPE_SECRET_KEY` and `STRIPE_PRICE_ID` as repository secrets to have
+  CI run it for real.
 
 ### Continuous integration
 

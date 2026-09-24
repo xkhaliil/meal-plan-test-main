@@ -77,9 +77,14 @@ jobs:
       JWT_SECRET: "ci-secret-not-used-outside-this-job"
       OPENAI_API_KEY: "sk-ci-placeholder"
       GEMINI_API_KEY: "ci-placeholder"
-      STRIPE_SECRET_KEY: "sk_test_ci_placeholder"
       STRIPE_WEBHOOK_SECRET: "whsec_ci_placeholder"
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_ci_placeholder"
+      # Real test-mode credentials if the repository has them, placeholders
+      # otherwise. The price test skips itself when Stripe isn't configured,
+      # rather than asserting a figure that can't exist here.
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY || 'sk_test_ci_placeholder' }}
+      STRIPE_PRICE_ID: ${{ secrets.STRIPE_PRICE_ID }}
+      STRIPE_PRO_PRODUCT_ID: ${{ secrets.STRIPE_PRO_PRODUCT_ID }}
 
     steps:
       - uses: actions/checkout@v4
