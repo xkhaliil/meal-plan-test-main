@@ -7,8 +7,14 @@ import { getLenis } from "@/app/components/motion/SmoothScroll";
 
 /** Vertical slats that lift away to reveal the page. */
 const PANELS = 5;
-/** Once per tab: a curtain on every navigation back would be tiresome. */
-const SEEN_KEY = "mealplan:intro-seen";
+/**
+ * Module scope, so it resets on a full page load but survives client-side
+ * navigation. A reload plays the intro again (which is what a visitor — and
+ * anyone working on it — expects); coming back to /landing from inside the app
+ * does not replay it. sessionStorage was wrong here: it made every reload after
+ * the first show nothing at all.
+ */
+let hasPlayedThisPageLoad = false;
 
 /**
  * The opening curtain on the landing page.
@@ -31,27 +37,12 @@ export default function LandingIntro() {
       const el = root.current;
       if (!el) return;
 
-      const skip =
-        prefersReducedMotion() ||
-        (() => {
-          try {
-            return sessionStorage.getItem(SEEN_KEY) === "1";
-          } catch {
-            return false;
-          }
-        })();
-
-      if (skip) {
+      if (prefersReducedMotion() || hasPlayedThisPageLoad) {
         // Before paint, so it never appears at all.
         gsap.set(el, { display: "none" });
         return;
       }
-
-      try {
-        sessionStorage.setItem(SEEN_KEY, "1");
-      } catch {
-        /* private mode: the intro just plays again next time */
-      }
+      hasPlayedThisPageLoad = true;
 
       // Hold the page still underneath the curtain.
       const lenis = getLenis();
@@ -71,23 +62,23 @@ export default function LandingIntro() {
         { yPercent: 115 },
         {
           yPercent: 0,
-          duration: 0.9,
+          duration: 1.15,
           ease: EASE.expo,
-          stagger: 0.045,
+          stagger: 0.08,
         }
       )
         // 2. The count and the rule run alongside it.
         .fromTo(
           "[data-intro-meta]",
           { opacity: 0 },
-          { opacity: 1, duration: 0.4 },
-          0.25
+          { opacity: 1, duration: 0.5 },
+          0.35
         )
         .to(
           { value: 0 },
           {
             value: 100,
-            duration: 1.5,
+            duration: 2.1,
             ease: "power1.inOut",
             onUpdate() {
               const { value } = this.targets()[0] as { value: number };
@@ -98,28 +89,29 @@ export default function LandingIntro() {
               }
             },
           },
-          0.25
+          0.35
         )
         .fromTo(
           "[data-intro-rule]",
           { scaleX: 0 },
-          { scaleX: 1, duration: 1.5, ease: "power1.inOut" },
-          0.25
+          { scaleX: 1, duration: 2.1, ease: "power1.inOut" },
+          0.35
         )
-        // 3. Everything on the curtain leaves before the curtain does.
+        // 3. Hold on the finished count, then clear the curtain's contents.
         .to("[data-intro-content]", {
           opacity: 0,
-          duration: 0.35,
+          duration: 0.45,
           ease: "power2.in",
+          delay: 0.35,
         })
         // 4. The slats lift, last one first, so the reveal sweeps right to left.
         .to(
           "[data-intro-panel]",
           {
             yPercent: -100,
-            duration: 1,
+            duration: 1.25,
             ease: EASE.expo,
-            stagger: { each: 0.07, from: "end" },
+            stagger: { each: 0.1, from: "end" },
           },
           "-=0.1"
         )
@@ -130,9 +122,9 @@ export default function LandingIntro() {
           {
             y: 0,
             opacity: 1,
-            duration: 0.9,
+            duration: 1,
             ease: EASE.expo,
-            stagger: 0.09,
+            stagger: 0.1,
             clearProps: "transform,opacity",
           },
           "-=0.75"
