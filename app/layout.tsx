@@ -59,7 +59,7 @@ export default function RootLayout({
       <head>
         <noscript>
           {/* Reveal animations start hidden; without JS they must still show. */}
-          <style>{`[data-reveal-item],[data-reveal-text]{opacity:1!important}`}</style>
+          <style>{`[data-reveal-item],[data-reveal-text]{opacity:1!important}.landing-intro{display:none!important}`}</style>
         </noscript>
       </head>
       {/* Extensions (ColorZilla, Grammarly and friends) add attributes to

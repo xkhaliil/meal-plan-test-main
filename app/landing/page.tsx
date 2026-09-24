@@ -1,4 +1,5 @@
 import AuthCta from "@/app/components/AuthCta";
+import LandingIntro from "@/app/components/LandingIntro";
 import ProPrice from "@/app/components/ProPrice";
 import CookIllustration from "@/app/components/CookIllustration";
 import LandingHeaderActions from "@/app/components/LandingHeaderActions";
@@ -84,10 +85,15 @@ const TICKER = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-yellow">
+    <div className="min-h-screen bg-yellow max-w-screen overflow-x-hidden">
+      <LandingIntro />
+
       {/* ---------- Header ---------- */}
       <header className="px-5 sm:px-[30px]">
-        <nav className="flex flex-col items-center gap-5 pt-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4 sm:pt-[48px]">
+        <nav
+          data-intro-reveal
+          className="flex flex-col items-center gap-5 pt-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4 sm:pt-[48px]"
+        >
           <p className="flex w-full max-w-full items-center justify-center text-center text-2xl font-bold uppercase leading-[1.05] tracking-tight text-brown sm:w-[438px] sm:text-[40px] sm:leading-[45px]">
             MealPlan the App<sup className="text-base"></sup>
           </p>
@@ -103,7 +109,10 @@ export default function LandingPage() {
 
           {/* Wordmark row is 524px tall on the original, with the 417px seal
               overlapping its right end. */}
-          <div className="relative flex h-[48vh] min-h-[260px] items-center justify-center sm:h-[58vh] sm:min-h-[320px] lg:h-[624px]">
+          <div
+            data-intro-reveal
+            className="relative flex h-[48vh] min-h-[260px] items-center justify-center sm:h-[58vh] sm:min-h-[320px] lg:h-[624px]"
+          >
             <div
               className="h-full w-full max-w-[1273px] text-red lg:-mt-20"
               aria-hidden
@@ -144,7 +153,7 @@ export default function LandingPage() {
         </section>
 
         {/* ---------- Phone-only call to action under the hero ---------- */}
-        <section className="px-5 pb-10 lg:hidden">
+        <section data-intro-reveal className="px-5 pb-10 lg:hidden">
           <div className="flex flex-col items-center gap-3">
             <AuthCta
               className="flex h-14 w-full max-w-[420px] items-center justify-center rounded-pill border-2 border-brown bg-red text-base uppercase text-brown transition-colors hover:bg-brown hover:text-yellow"
