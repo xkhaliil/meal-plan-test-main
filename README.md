@@ -69,11 +69,39 @@ rule that would argue with it, so the two never disagree.
 `endOfLine` is `"auto"` because Windows checkouts get CRLF and CI runs on Linux;
 without it, line endings alone would fail the check on one platform or the other.
 
+### Testing
+
+Four layers, each answering a different question:
+
+| Layer           | Where                                | Command                    | What it covers                                                                                                                                                                                                            |
+| --------------- | ------------------------------------ | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Unit**        | `lib/__tests__`, `app/api/__tests__` | `npm run test:unit`        | Single functions in isolation — the ingredient scaler's fraction maths, the recipe validator, the rate limiter's decisions. Prisma is mocked.                                                                             |
+| **Integration** | `tests/integration`                  | `npm run test:integration` | Real route handlers + real validator + real Prisma against a throwaway SQLite file, built fresh by `globalSetup`. Proves rows actually land, ingredients are replaced rather than orphaned, and a second user gets a 403. |
+| **Component**   | `tests/component`                    | `npm run test:component`   | UI pieces in jsdom with Testing Library — the confirm dialog only confirms when asked, pagination windows correctly, and `RichText` renders model output as text rather than markup.                                      |
+| **E2E**         | `tests/e2e`                          | `npm run test:e2e`         | A real browser against a real server: the landing page, the proxy redirecting signed-out visitors, signing in, searching the catalog, signing out.                                                                        |
+
+`npm test` runs the first three (they're fast and need no browser); `npm run
+test:all` adds the E2E suite. `npm run test:e2e:ui` opens Playwright's
+interactive runner.
+
+Two things worth knowing:
+
+- **E2E runs against the development database** and the seeded accounts, so the
+  specs are deliberately read-only. Anything that creates or deletes data
+  belongs in the integration project, which gets its own disposable database.
+- They sign in as **bob@example.com**, not alice — alice is the Pro account, but
+  her seeded password no longer matches `TEST_INSTRUCTIONS.md`. Re-run
+  `npx prisma db seed` to restore it (that wipes all data first).
+
 ### Continuous integration
 
 `.github/workflows/ci.yml` runs on every pull request into `main`, and on `main`
-itself: format check → lint → typecheck → tests → build, in that order, so a
-failure points at the cheapest thing that broke. It installs with `npm ci` and
+itself. The `verify` job goes format check → lint → typecheck → unit,
+integration and component tests → build, in that order, so a failure points at
+the cheapest thing that broke. A second `e2e` job then seeds a database,
+installs Chromium and runs Playwright against a production build, uploading the
+HTML report as an artefact. It `needs: verify`, so the browser download only
+happens once the quick checks are green. It installs with `npm ci` and
 generates the Prisma client first. The API keys in the workflow are
 placeholders — several modules read them at import time, and the suite mocks
 Prisma rather than opening a database.

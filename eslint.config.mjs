@@ -9,7 +9,15 @@ const eslintConfig = defineConfig([
   // Last of the presets: switches off every ESLint rule that overlaps with
   // Prettier, so formatting has exactly one owner.
   prettier,
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+    "tests/.tmp/**",
+    "test-results/**",
+    "playwright-report/**",
+  ]),
   {
     files: ["app/(app)/recipes/**/*.tsx"],
     rules: {

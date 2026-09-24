@@ -11,3 +11,8 @@ prisma/dev.db-journal
 *.png
 *.jpg
 *.ico
+
+# Test artefacts
+tests/.tmp
+test-results
+playwright-report

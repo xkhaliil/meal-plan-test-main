@@ -1,0 +1,63 @@
+import { test, expect } from "@playwright/test";
+
+/**
+ * Signed-in journeys. Read-only by design: these run against the development
+ * database, so they must not leave recipes or plans behind.
+ */
+test.describe("signed in", () => {
+  test("the catalog lists recipes and opens one", async ({ page }) => {
+    await page.goto("/recipes");
+
+    const cards = page.locator("article");
+    await expect(cards.first()).toBeVisible();
+
+    const title = await cards.first().getByRole("heading").textContent();
+    await cards.first().getByRole("link").first().click();
+
+    await expect(page).toHaveURL(/\/recipes\/.+/);
+    await expect(
+      page.getByRole("heading", { name: new RegExp(title ?? "", "i") })
+    ).toBeVisible();
+    await expect(page.getByText(/ingredients/i).first()).toBeVisible();
+  });
+
+  test("search narrows the catalog", async ({ page }) => {
+    await page.goto("/recipes");
+    const cards = page.locator("article");
+    // Wait for the fetch to land: counting during the skeletons gives 0.
+    await expect(cards.first()).toBeVisible();
+    const before = await cards.count();
+
+    await page.getByLabel(/search recipes/i).fill("zzzznomatch");
+    await expect(page.getByText(/no matches/i)).toBeVisible();
+
+    await page.getByLabel(/search recipes/i).fill("");
+    await expect(cards).toHaveCount(before);
+  });
+
+  test("the meal planner shows a week of slots", async ({ page }) => {
+    await page.goto("/meal-plans");
+    await expect(
+      page.getByRole("heading", { name: /meal plans/i })
+    ).toBeVisible();
+  });
+
+  test("Recipe Bot is ready to take a message", async ({ page }) => {
+    await page.goto("/chat");
+
+    await expect(page.getByRole("heading", { name: /ferraro/i })).toBeVisible();
+    await expect(page.getByLabel(/message chef ferraro/i)).toBeEditable();
+  });
+
+  test("signing out returns to login and re-guards the app", async ({
+    page,
+  }) => {
+    await page.goto("/recipes");
+    await page.getByRole("button", { name: /account/i }).click();
+    await page.getByRole("button", { name: /log out/i }).click();
+
+    await page.waitForURL("**/login");
+    await page.goto("/recipes");
+    await expect(page).toHaveURL(/\/login/);
+  });
+});
