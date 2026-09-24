@@ -78,7 +78,7 @@ export default function LandingIntro() {
           { value: 0 },
           {
             value: 100,
-            duration: 2.1,
+            duration: 1.8,
             ease: "power1.inOut",
             onUpdate() {
               const { value } = this.targets()[0] as { value: number };
@@ -94,7 +94,7 @@ export default function LandingIntro() {
         .fromTo(
           "[data-intro-rule]",
           { scaleX: 0 },
-          { scaleX: 1, duration: 2.1, ease: "power1.inOut" },
+          { scaleX: 1, duration: 1.8, ease: "power1.inOut" },
           0.35
         )
         // 3. Hold on the finished count, then clear the curtain's contents.
@@ -102,16 +102,16 @@ export default function LandingIntro() {
           opacity: 0,
           duration: 0.45,
           ease: "power2.in",
-          delay: 0.35,
+          delay: 0.3,
         })
         // 4. The slats lift, last one first, so the reveal sweeps right to left.
         .to(
           "[data-intro-panel]",
           {
             yPercent: -100,
-            duration: 1.25,
+            duration: 1.15,
             ease: EASE.expo,
-            stagger: { each: 0.1, from: "end" },
+            stagger: { each: 0.09, from: "end" },
           },
           "-=0.1"
         )
