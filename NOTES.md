@@ -316,6 +316,68 @@ Four Playwright tests cover exactly those behaviours: it appears then leaves,
 it doesn't block clicks afterwards, it plays once per tab, and reduced motion
 skips it.
 
+## Sign in / register redesign
+
+Both pages were a centred card on an empty yellow field — the one part of the
+app that still looked like a scaffold. They now share a split frame,
+`app/components/auth/AuthShell.tsx`: a brown brand panel (statement, numbered
+value points, a pair of outlined rings) beside the form on the
+yellow ground, divided by the same 2px rule every landing band uses. Below
+`lg` the panel collapses to a short masthead so the form stays above the fold
+on a phone.
+
+- **`AuthField`** (`app/components/auth/AuthField.tsx`) is the shared input:
+  `useId` for the label/input pairing, `aria-describedby` for the hint,
+  `aria-invalid` when a field fails its own rule, and a reveal toggle on
+  password fields. Five component tests cover that wiring.
+- **The register form now validates as you type** — length and match are
+  derived from state, never copied into it — and shows a four-pip strength
+  meter. The rules match what `app/api/auth/register/route.ts` enforces
+  (8 characters); the server is still the one that decides.
+- **Both pages gained a `<main id="main">`.** The root layout's skip link
+  pointed at an anchor that didn't exist on either page.
+- **The email is trimmed before it is sent.** The login lookup is exact, so a
+  pasted address with a trailing space failed with "invalid credentials".
+- **Login offers to fill the seeded demo account** (`bob@example.com`, from
+  `TEST_INSTRUCTIONS.md`) rather than making a reviewer copy it across.
+- `tests/e2e/auth.setup.ts` now anchors its password locator (`/^password$/i`):
+  the reveal toggle is labelled "Show password", which made the old loose
+  pattern ambiguous.
+
+## Checkout success page
+
+`/checkout/success` was a static page that told everyone who loaded it "You're
+on Pro", payment or not — and locally, where no `stripe listen` is running, that
+was usually a lie: the webhook is what flips the plan.
+
+- **`GET /api/stripe/session`** reads the session back from Stripe. It
+  authenticates, and refuses (403) unless `metadata.userId` matches the caller,
+  because the session id travels in a URL and can be pasted or shared.
+- **It reconciles what the webhook would have done** when Stripe reports the
+  session paid and complete but the account is still free — the same idempotent
+  update, for a delayed webhook in production or none at all in development.
+  The webhook remains the primary path.
+- **The page now has five honest states**: checking, on Pro (with a receipt —
+  amount, interval, billing email, renewal date), payment received but not yet
+  applied (it polls four times, then says so), checkout never completed, and
+  couldn't confirm. The brand panel's copy changes with them.
+- On success it calls `patchUser({ plan: "pro" })`, so the navbar and settings
+  agree without a reload.
+- Reuses `AuthShell`, which took a `back` prop so the corner link can point at
+  the app rather than the marketing page.
+- Eight unit tests in `app/api/__tests__/stripe.test.ts` cover the new route,
+  including the cross-account 403 and that Stripe's error text never reaches
+  the browser.
+
+## Cancelling Pro
+
+"Cancel subscription" on the settings page fired the moment it was clicked —
+the one destructive action in the app that wasn't behind `ConfirmDialog`. It now
+opens the same dialog every other destructive action uses, and the copy says
+what actually happens: `stripe.subscriptions.cancel` ends the subscription
+immediately, not at the end of the paid period. The success page's blurb, which
+claimed the opposite, was corrected to match.
+
 ## Documented follow-ups (not implemented)
 
 - **`mushroom-risotto.jpg` still shows the wrong subject** (a mountain, not risotto) and `caesar-salad.jpg` contains hands. Both need regeneration against a valid `GEMINI_API_KEY`: `npm run generate:recipe-images -- mushroom-risotto.jpg caesar-salad.jpg`. The prompt bug that caused this class of failure is already fixed.

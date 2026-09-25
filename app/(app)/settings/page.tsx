@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ConfirmDialog from "@/app/components/ConfirmDialog";
 import ProPrice from "@/app/components/ProPrice";
 import RotatingBadge from "@/app/components/RotatingBadge";
 import { useAuthStore } from "@/lib/stores/authStore";
@@ -38,6 +39,7 @@ export default function SettingsPage() {
   const [quota, setQuota] = useState<Quota | null>(null);
   const [planError, setPlanError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
 
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
@@ -186,6 +188,9 @@ export default function SettingsPage() {
     });
     const data = await res.json().catch(() => ({}));
     setBusy(false);
+    // Either way the decision has been made; a failure belongs on the page
+    // behind the dialog, not inside it.
+    setConfirmingCancel(false);
 
     if (!res.ok) {
       setPlanError(
@@ -454,7 +459,8 @@ export default function SettingsPage() {
 
                 <div className="mt-auto flex flex-wrap items-center gap-4 border-t-2 border-brown pt-6">
                   <button
-                    onClick={handleCancelSubscription}
+                    type="button"
+                    onClick={() => setConfirmingCancel(true)}
                     disabled={busy}
                     className="btn btn-secondary"
                   >
@@ -588,6 +594,35 @@ export default function SettingsPage() {
           </p>
         </div>
       </section>
+
+      <ConfirmDialog
+        open={confirmingCancel}
+        destructive
+        busy={busy}
+        title="Cancel Pro?"
+        confirmLabel="Cancel subscription"
+        cancelLabel="Keep Pro"
+        onCancel={() => setConfirmingCancel(false)}
+        onConfirm={handleCancelSubscription}
+        body={
+          <>
+            <p>
+              Your subscription is cancelled at Stripe straight away — not at
+              the end of the billing period — so Pro features stop now and there
+              are no further charges.
+            </p>
+            <ul className="mt-3 list-disc space-y-1 pl-5">
+              <li>The Recipe Bot goes back to five messages a day</li>
+              <li>New recipes stop getting generated photos</li>
+              <li>
+                Your recipes, meal plans and shopping lists stay exactly as they
+                are
+              </li>
+            </ul>
+            <p className="mt-3">You can subscribe again whenever you like.</p>
+          </>
+        }
+      />
     </div>
   );
 }

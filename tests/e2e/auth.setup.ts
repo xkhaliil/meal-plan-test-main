@@ -13,7 +13,8 @@ setup("authenticate", async ({ page }) => {
   await page.goto("/login");
 
   await page.getByLabel(/email/i).fill("bob@example.com");
-  await page.getByLabel(/password/i).fill("bob2024");
+  // Anchored: the reveal toggle beside the field is labelled "Show password".
+  await page.getByLabel(/^password$/i).fill("bob2024");
   await page.getByRole("button", { name: /sign in|log in/i }).click();
 
   // The proxy sends a signed-in user to the catalog.
