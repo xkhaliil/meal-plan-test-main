@@ -38,14 +38,38 @@ test.describe("landing intro", () => {
     await expect(page).toHaveURL(/\/register/);
   });
 
-  test("plays once per tab, not on every visit", async ({ page }) => {
+  test("plays again on a fresh page load", async ({ page }) => {
     await page.goto("/landing");
     await expect(page.locator(".landing-intro")).toBeHidden({
-      timeout: 10_000,
+      timeout: 15_000,
     });
 
-    // Same tab, same session: straight to the page.
+    // A reload is a new page load, so the curtain comes back — this is what
+    // makes it visible at all during development and on a return visit.
+    await page.reload();
+    await expect(page.locator(".landing-intro")).toBeVisible();
+    await expect(page.locator(".landing-intro")).toBeHidden({
+      timeout: 15_000,
+    });
+  });
+
+  test("does not replay on client-side navigation back to the page", async ({
+    page,
+  }) => {
     await page.goto("/landing");
+    await expect(page.locator(".landing-intro")).toBeHidden({
+      timeout: 15_000,
+    });
+
+    await page
+      .getByRole("link", { name: /get started|start planning free/i })
+      .first()
+      .click();
+    await expect(page).toHaveURL(/\/register/);
+
+    // Soft navigation keeps the JS context, so the curtain stays down.
+    await page.goBack();
+    await expect(page).toHaveURL(/\/landing/);
     await expect(page.locator(".landing-intro")).toBeHidden();
   });
 

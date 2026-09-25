@@ -60,7 +60,7 @@ export default function RegisterPage() {
         <div className="card mt-8 p-8">
           <h1 className="text-2xl uppercase text-brown">Create your account</h1>
           <p className="mt-1 text-sm text-brown/70">
-            Free to start — no card required.
+            Free to start no card required.
           </p>
 
           {error && <div className="alert-error mt-5">{error}</div>}

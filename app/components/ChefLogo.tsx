@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const SRC = "/images/chef-logo.png";
+const SRC = "/images/mealplan-logo.svg";
 
 type ChefLogoProps = {
   size?: number;
@@ -25,6 +25,10 @@ export default function ChefLogo({
       style={{ width: size, height: size }}
       className={`shrink-0 object-contain ${className}`}
       priority={priority}
+      // Vector: there is nothing for the optimizer to do, and routing an SVG
+      // through it needs `dangerouslyAllowSVG` in next.config. Serving the file
+      // as-is also keeps the animation inside it running.
+      unoptimized
     />
   );
 

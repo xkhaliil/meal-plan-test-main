@@ -67,7 +67,8 @@ const useMorphingText = (texts: string[]) => {
   }, []);
 
   useEffect(() => {
-    let animationFrameId: number;
+    let animationFrameId = 0;
+    let running = false;
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
@@ -82,9 +83,44 @@ const useMorphingText = (texts: string[]) => {
       else doCooldown();
     };
 
-    animate();
-    return () => {
+    const start = () => {
+      if (running) return;
+      running = true;
+      // Without this, the first frame after a pause counts the whole gap as
+      // elapsed time and jumps the morph forward.
+      timeRef.current = new Date();
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    const stop = () => {
+      if (!running) return;
+      running = false;
       cancelAnimationFrame(animationFrameId);
+    };
+
+    // This loop writes a blur filter and an opacity every frame for as long as
+    // the page is open. There is no reason to do that for a hidden tab, or for
+    // a hero the reader has already scrolled past.
+    const onVisibility = () => (document.hidden ? stop() : start());
+    document.addEventListener("visibilitychange", onVisibility);
+
+    const target = text1Ref.current?.parentElement;
+    let observer: IntersectionObserver | undefined;
+
+    if (target && typeof IntersectionObserver !== "undefined") {
+      observer = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting && !document.hidden) start();
+        else stop();
+      });
+      observer.observe(target);
+    } else {
+      start();
+    }
+
+    return () => {
+      stop();
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [doMorph, doCooldown]);
 
@@ -100,14 +136,26 @@ const Texts: React.FC<Pick<MorphingTextProps, "texts">> = ({ texts }) => {
   const { text1Ref, text2Ref } = useMorphingText(texts);
   return (
     <>
+      {/* The first two phrases are rendered server-side, with the styles the
+          animation's first frame would set anyway. Both spans used to ship
+          empty and be filled by JS, so the largest text on the page could not
+          paint until the client bundle had run — it was the LCP element, and
+          it waited for hydration. The loop overwrites textContent from its
+          first frame, so the animation itself is unchanged. */}
       <span
         className="absolute inset-0 flex w-full items-center justify-center text-balance"
+        style={{ opacity: "100%", filter: "none" }}
         ref={text1Ref}
-      />
+      >
+        {texts[0]}
+      </span>
       <span
         className="absolute inset-0 flex w-full items-center justify-center text-balance"
+        style={{ opacity: "0%", filter: "none" }}
         ref={text2Ref}
-      />
+      >
+        {texts[1]}
+      </span>
     </>
   );
 };

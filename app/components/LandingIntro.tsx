@@ -116,12 +116,15 @@ export default function LandingIntro() {
           "-=0.1"
         )
         // 5. The hero arrives just behind the slats rather than after them.
+        // Movement only, no fade: an element at opacity 0 is disqualified as an
+        // LCP candidate, so fading the hero in meant the browser recorded the
+        // largest paint only once the curtain had finished lifting. It still
+        // rises into place — it is behind the slats while it does.
         .fromTo(
           "[data-intro-reveal]",
-          { y: 40, opacity: 0 },
+          { y: 40 },
           {
             y: 0,
-            opacity: 1,
             duration: 1,
             ease: EASE.expo,
             stagger: 0.1,

@@ -228,6 +228,30 @@ export async function POST(req: NextRequest) {
       { timeout: CHAT_TIMEOUT_MS }
     );
   } catch (err) {
+    // A rejected key is a configuration fault, not a blip: telling the user to
+    // "try again shortly" would send them round a loop that can never succeed,
+    // and would bury the one line an operator needs to see.
+    const status =
+      err && typeof err === "object" && "status" in err
+        ? (err as { status?: number }).status
+        : undefined;
+
+    if (status === 401 || status === 403) {
+      console.error(
+        "OpenAI rejected our credentials (%s). Recipe Bot is down until " +
+          "OPENAI_API_KEY in .env is replaced with a valid key.",
+        status
+      );
+      return NextResponse.json(
+        {
+          error:
+            "Recipe Bot isn't set up correctly on our side. Nothing you did — " +
+            "please let us know.",
+        },
+        { status: 503 }
+      );
+    }
+
     console.error("OpenAI chat completion failed:", err);
     return NextResponse.json(
       {

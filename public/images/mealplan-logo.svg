@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="300" height="300" role="img" aria-label="mealplan">
+  <style>
+    .plate { fill: #D7EBDC; stroke: #16302A; stroke-width: 5; }
+    .rim { fill: none; stroke: #16302A; stroke-opacity: 0.18; stroke-width: 2; }
+    .dot { fill: #16302A; }
+    .hand { fill: none; stroke: #16302A; stroke-linecap: round; stroke-linejoin: round;
+            transform-box: view-box; transform-origin: 60px 60px;
+            animation: spin 7s linear infinite; }
+    .w { transform-box: view-box; transform-origin: 60px 60px;
+         animation: pop 7s ease-out infinite both; }
+    .w1 { animation-delay: 1s; } .w2 { animation-delay: 2s; } .w3 { animation-delay: 3s; }
+    .w4 { animation-delay: 4s; } .w5 { animation-delay: 5s; } .w6 { animation-delay: 6s; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pop {
+      0%   { transform: scale(0);   opacity: 0; }
+      6%   { transform: scale(1.1); opacity: 1; }
+      11%  { transform: scale(1); }
+      86%  { transform: scale(1);   opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { .hand, .w { animation: none; } }
+  </style>
+
+  <circle class="plate" cx="60" cy="60" r="54"/>
+  <circle class="rim" cx="60" cy="60" r="44"/>
+
+  <path class="w w0" fill="#E4572E" d="M60 60 L60.89 26.01 A34 34 0 0 1 86.02 38.11 Z"/>
+  <path class="w w1" fill="#F6C445" d="M60 60 L87.13 39.50 A34 34 0 0 1 93.33 66.70 Z"/>
+  <path class="w w2" fill="#2F7D5B" d="M60 60 L92.94 68.43 A34 34 0 0 1 75.55 90.24 Z"/>
+  <path class="w w3" fill="#E4572E" d="M60 60 L73.95 91.01 A34 34 0 0 1 46.05 91.01 Z"/>
+  <path class="w w4" fill="#F6C445" d="M60 60 L44.45 90.24 A34 34 0 0 1 27.06 68.43 Z"/>
+  <path class="w w5" fill="#2F7D5B" d="M60 60 L26.67 66.70 A34 34 0 0 1 32.87 39.50 Z"/>
+  <path class="w w6" fill="#F6C445" d="M60 60 L33.98 38.11 A34 34 0 0 1 59.11 26.01 Z"/>
+
+  <g class="hand">
+    <path stroke-width="4.5" d="M60 60 V33"/>
+    <path stroke-width="3.2" d="M53.5 20 V29 Q53.5 34 60 34 Q66.5 34 66.5 29 V20 M60 20 V33"/>
+  </g>
+  <circle class="dot" cx="60" cy="60" r="5.5"/>
+</svg>
