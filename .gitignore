@@ -62,3 +62,6 @@ public/cooking-gifs/*.gif
 /playwright-report
 /blob-report
 /playwright/.cache
+
+.vercel
+.env*

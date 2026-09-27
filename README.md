@@ -166,18 +166,37 @@ this move, which Vercel cannot host at all: the deployment is read-only and the
 instance is discarded between invocations, so a database file is both
 unwritable and pointless.
 
-Create a database (Vercel Postgres, Neon, Supabase — any Postgres), set
-`DATABASE_URL` in the Vercel project, and push the schema and seed data from
-your machine with that URL:
+Create a database. The Vercel Marketplace is the least friction — it
+provisions, connects it to the project and injects the credentials in one step
+(there is no first-party "Vercel Postgres" any more; the providers are Neon,
+Supabase, Prisma Postgres and AWS Aurora):
+
+```bash
+vercel install neon
+```
+
+Any other Postgres works just as well; only the URL matters.
+
+Then check two things the integration does not do for you:
+
+1. **The variable must be called `DATABASE_URL`**, holding the _pooled_
+   connection string — Prisma reads that one name and nothing else. Providers
+   differ in what they name theirs, so look at Project Settings → Environment
+   Variables and add it yourself if it isn't there.
+2. **Push the schema**, from your machine, with that URL:
 
 ```bash
 DATABASE_URL="<your production url>" npx prisma db push
 DATABASE_URL="<your production url>" npx prisma db seed   # optional demo data
 ```
 
-Use the **pooled** connection string in `DATABASE_URL` (Neon's `-pooler` host,
-Supabase's port 6543, or PgBouncer). Every serverless invocation opens its own
-client, and a direct connection runs a small Postgres out of slots quickly.
+Pooled matters (Neon's `-pooler` host, Supabase's port 6543, or PgBouncer):
+every serverless invocation opens its own client, and a direct connection runs a
+small Postgres out of slots quickly.
+
+`vercel install` also writes the credentials into `.env.local`, which Next.js
+loads ahead of `.env`. Convenient, but it points your machine at the production
+database — with Neon, branch it and use the branch locally.
 
 ### 2. Environment variables
 
