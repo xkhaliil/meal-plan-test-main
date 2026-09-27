@@ -200,8 +200,13 @@ export default function LandingPage() {
               and dietary tags structured and searchable, so a recipe you loved
               in March is still one click away in November.
             </p>
-            <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-              <h2 className="font-display text-[clamp(3rem,11vw,152px)] uppercase leading-none text-brown text-right">
+            {/* justify-end matters: the heading is wider than this box at most
+                widths, so the arrow wraps onto its own line. Left-aligned it
+                floated in open space, disconnected from the right-aligned
+                heading it belongs to; ending the line tucks it under the last
+                word instead. */}
+            <div className="flex flex-wrap items-center justify-end gap-4 sm:gap-6">
+              <h2 className="text-right font-display text-[clamp(3rem,11vw,152px)] uppercase leading-none text-brown">
                 Your catalog
               </h2>
               <AuthCta
