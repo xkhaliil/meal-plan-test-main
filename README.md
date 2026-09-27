@@ -50,6 +50,14 @@ npm run dev
 
 The app will be available at [http://localhost:3000](http://localhost:3000).
 
+> **If you provisioned the database through Vercel**, `vercel env pull` writes
+> `.env.local`, and the two files are read by different tools: Next.js loads
+> `.env.local` ahead of `.env`, while the **Prisma CLI reads `.env` only**. A
+> `DATABASE_URL` that lives only in `.env.local` gives you a working
+> `npm run dev` and a `P1012` on every `prisma` command. Keep the URL in `.env`
+> too — the direct/unpooled one, since schema pushes shouldn't go through the
+> pooler. Both files are gitignored.
+
 ### Other scripts
 
 | Command                | What it does                                                      |
@@ -180,9 +188,10 @@ Any other Postgres works just as well; only the URL matters.
 Then check two things the integration does not do for you:
 
 1. **The variable must be called `DATABASE_URL`**, holding the _pooled_
-   connection string — Prisma reads that one name and nothing else. Providers
-   differ in what they name theirs, so look at Project Settings → Environment
-   Variables and add it yourself if it isn't there.
+   connection string — Prisma reads that one name and nothing else. Neon injects
+   `DATABASE_URL` and `DATABASE_URL_UNPOOLED` under exactly those names, so there
+   is nothing to do; other providers differ, so check Project Settings →
+   Environment Variables and add it yourself if it isn't there.
 2. **Push the schema**, from your machine, with that URL:
 
 ```bash

@@ -403,6 +403,19 @@ back with an answer, and "create and save a recipe for lemon garlic butter
 shrimp" produced a saved recipe with nine ingredients — so tool calling survives
 the compatibility layer.
 
+## Landing: the stranded arrow button
+
+The circular arrow beside "Your catalog" was floating in open space, attached to
+nothing. It and the heading are two items in one `flex flex-wrap` box; the
+heading at `clamp(3rem,11vw,152px)` is wider than that box at most widths, so it
+fills the line and the arrow wraps onto its own. A wrapped flex line defaults to
+`flex-start`, which put the arrow hard left while the heading above it is
+`text-right`.
+
+`justify-end` on that box fixes it — the arrow now ends the line under the last
+word instead of starting a new one on the far side. Checked at 1440px, 1024px
+and 390px.
+
 ## Vercel readiness
 
 - **Image optimization is off** — `images.unoptimized: true` in
@@ -442,10 +455,62 @@ the compatibility layer.
     is not a thing to do by accident against a hosted database.
   - Both CI jobs now run a `postgres:16` service container.
 
-  **Not verified locally**: Docker Desktop's daemon wasn't running on this
-  machine, so the Postgres path has been exercised by review and by the schema
-  validating/generating, not by a green integration run. CI's service container
-  is what proves it.
+  The move is no longer theoretical — see "Neon" below. What is still unproven
+  is the _integration test_ path: it needs a Postgres it may create and drop
+  schemas in, which is not something to point at the production database. CI's
+  service container is what exercises it.
+
+## Neon: the database, provisioned
+
+`vercel install neon` provisions a Lakebase Postgres, connects it to the Vercel
+project and injects the credentials. It happens to inject `DATABASE_URL`
+(pooled) and `DATABASE_URL_UNPOOLED` (direct) under exactly those names, so
+Prisma needed no mapping — worth checking per provider, since Prisma reads
+`DATABASE_URL` and nothing else.
+
+**The env files disagree on purpose, and the tools read different ones.** This
+cost a confusing ten minutes, so it is written down:
+
+| File         | Read by                       | Holds                        |
+| ------------ | ----------------------------- | ---------------------------- |
+| `.env.local` | Next.js (takes precedence)    | What `vercel env pull` wrote |
+| `.env`       | The Prisma CLI, and only this | Everything, merged by hand   |
+
+`npm run dev` worked off `.env.local` while every `npx prisma` command failed
+with `P1012` against `.env`'s leftover `file:./dev.db`. Both files are
+gitignored. `.env` now carries the whole set, with `DATABASE_URL` pointed at the
+**direct** connection: it is the CLI's value, and schema pushes should not go
+through the pooler. The deployed app uses Vercel's own pooled variable.
+`VERCEL_OIDC_TOKEN` was deliberately left out of `.env` — it is short-lived and
+rewritten on every pull.
+
+Then, against Neon: `prisma db push` created the tables, `prisma db seed` filled
+them — 3 users, 20 recipes, 2 meal plans, 8 chat messages. alice is Pro again
+with the password `TEST_INSTRUCTIONS.md` documents, which the old development
+database had drifted away from.
+
+### What the install left behind
+
+`.agents/skills/neon/` and `.agents/skills/neon-postgres/` (128 KB of Neon's
+agent documentation from `neondatabase/agent-skills`), `.claude/skills/neon*` as
+symlinks to them, and `skills-lock.json` pinning both by content hash. None of
+it is application code and nothing in the build reads it; it is instructions
+written for AI agents, and is treated as data, not as commands. Untracked —
+commit or delete as you prefer.
+
+### Still open after the move
+
+- **`prisma/dev.db` was not migrated.** The old SQLite file still holds what the
+  development database had: bob's Pro status from the Stripe test checkout, the
+  recipes created through the bot, the chat history. Neon was seeded fresh
+  instead. Node 24 ships a built-in SQLite reader if that data is ever wanted.
+- **Integration tests skip against Neon by design.** `resolveTestDatabaseUrl`
+  falls back to `DATABASE_URL` only when it is localhost, because these tests
+  create and drop schemas. Enable them with a Neon branch as
+  `TEST_DATABASE_URL`, or a local Postgres container.
+- **End-to-end sign-in was not re-checked** after seeding; the dev server was
+  not running. The database itself was verified directly — the three accounts,
+  the counts, and a Prisma query through the app's own client.
 
 ## Documented follow-ups (not implemented)
 
