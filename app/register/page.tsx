@@ -6,6 +6,11 @@ import { useRouter } from "next/navigation";
 import AuthField from "@/app/components/auth/AuthField";
 import AuthShell from "@/app/components/auth/AuthShell";
 import Reveal from "@/app/components/motion/Reveal";
+import {
+  NETWORK_ERROR_MESSAGE,
+  UNREADABLE_RESPONSE_MESSAGE,
+  messageForFailedResponse,
+} from "@/lib/apiMessage";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +35,9 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  /** Same three phases as sign-in, for the same reason — see app/login. */
+  const [phase, setPhase] = useState<"idle" | "sending" | "created">("idle");
+  const busy = phase !== "idle";
   const router = useRouter();
 
   // Derived rather than mirrored into state — the lint rule flags setState in
@@ -55,23 +62,42 @@ export default function RegisterPage() {
       return;
     }
 
-    setBusy(true);
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email.trim(), password, name }),
-    });
+    setPhase("sending");
 
-    const data = await res.json().catch(() => ({}));
-    setBusy(false);
+    let res: Response;
+    try {
+      res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password, name }),
+      });
+    } catch {
+      setPhase("idle");
+      setError(NETWORK_ERROR_MESSAGE);
+      return;
+    }
 
     if (!res.ok) {
-      setError(data.error || "Registration failed");
+      setPhase("idle");
+      setError(
+        await messageForFailedResponse(
+          res,
+          "We couldn't create your account. Check the details and try again."
+        )
+      );
+      return;
+    }
+
+    const data = await res.json().catch(() => null);
+    if (!data?.token || !data?.user) {
+      setPhase("idle");
+      setError(UNREADABLE_RESPONSE_MESSAGE);
       return;
     }
 
     // Writes storage, fills the store and notifies other tabs in one call.
     useAuthStore.getState().signIn(data.user, data.token);
+    setPhase("created");
     router.push("/recipes");
   }
 
@@ -117,6 +143,21 @@ export default function RegisterPage() {
             className="alert-error mt-6 animate-in fade-in slide-in-from-top-1 duration-200"
           >
             {error}
+          </div>
+        )}
+
+        {phase === "created" && (
+          <div
+            role="status"
+            className="mt-6 flex items-center gap-3 rounded-card border-2 border-green bg-green/10 px-4 py-3 text-[0.9375rem] text-brown animate-in fade-in slide-in-from-top-1 duration-200"
+          >
+            <span
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-brown bg-green text-xs text-beige"
+              aria-hidden
+            >
+              ✓
+            </span>
+            Account created — setting up your kitchen…
           </div>
         )}
 
@@ -191,7 +232,11 @@ export default function RegisterPage() {
             disabled={busy}
             className="btn btn-primary group h-14 w-full text-[0.9rem] uppercase tracking-[0.15em]"
           >
-            {busy ? "Creating account…" : "Create account"}
+            {phase === "sending"
+              ? "Creating account…"
+              : phase === "created"
+                ? "One moment…"
+                : "Create account"}
             <span
               aria-hidden
               className="transition-transform duration-300 group-hover:translate-x-1"

@@ -15,8 +15,12 @@ test.describe("signed in", () => {
     await cards.first().getByRole("link").first().click();
 
     await expect(page).toHaveURL(/\/recipes\/.+/);
+    // A plain string, not `new RegExp(title)`: a title is arbitrary text, and
+    // the first one in the catalog turned out to be "Tunisian Couscous
+    // (Couscous Tunisien)" — whose parentheses became a regex group, so the
+    // pattern no longer matched the heading it was built from.
     await expect(
-      page.getByRole("heading", { name: new RegExp(title ?? "", "i") })
+      page.getByRole("heading", { name: title ?? "" })
     ).toBeVisible();
     await expect(page.getByText(/ingredients/i).first()).toBeVisible();
   });

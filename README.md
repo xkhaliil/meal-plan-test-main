@@ -213,6 +213,18 @@ Set every variable from the table above in **Project → Settings → Environmen
 Variables**, for Production and Preview. `.env` is gitignored and is not
 uploaded, so nothing is inherited from your machine.
 
+**Two of them fail the build, not just the runtime**, because they are read at
+module scope while Next.js prerenders:
+
+| Variable            | What happens without it                                                           |
+| ------------------- | --------------------------------------------------------------------------------- |
+| `JWT_SECRET`        | `lib/auth.ts` throws `JWT_SECRET environment variable is not set.`                |
+| `STRIPE_SECRET_KEY` | The Stripe constructor throws `Neither apiKey nor config.authenticator provided`. |
+
+Set both for Preview as well as Production — preview deployments run the same
+build. `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` is also needed at build time, since
+it is inlined into the client bundle, though its absence doesn't throw.
+
 Two need different values than local:
 
 | Variable                | In production                                                                                 |

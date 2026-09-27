@@ -6,6 +6,11 @@ import { useRouter } from "next/navigation";
 import AuthField from "@/app/components/auth/AuthField";
 import AuthShell from "@/app/components/auth/AuthShell";
 import Reveal from "@/app/components/motion/Reveal";
+import {
+  NETWORK_ERROR_MESSAGE,
+  UNREADABLE_RESPONSE_MESSAGE,
+  messageForFailedResponse,
+} from "@/lib/apiMessage";
 import { useAuthStore } from "@/lib/stores/authStore";
 
 /** Documented in TEST_INSTRUCTIONS.md — seeded on every `prisma db seed`. */
@@ -15,7 +20,14 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  /**
+   * `signedIn` is its own phase rather than "not busy": the redirect is a
+   * server round trip through the proxy, and on a cold function that is a
+   * couple of seconds. Dropping straight back to an idle button made a
+   * successful sign-in look like nothing had happened at all.
+   */
+  const [phase, setPhase] = useState<"idle" | "sending" | "signedIn">("idle");
+  const busy = phase !== "idle";
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -27,30 +39,55 @@ export default function LoginPage() {
       return;
     }
 
-    setBusy(true);
+    setPhase("sending");
 
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      // Trimmed: a pasted address often carries a trailing space, and the
-      // lookup is exact.
-      body: JSON.stringify({ email: email.trim(), password }),
-    });
-
-    const data = await res.json().catch(() => ({}));
-    setBusy(false);
+    let res: Response;
+    try {
+      res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Trimmed: a pasted address often carries a trailing space, and the
+        // lookup is exact.
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+    } catch {
+      // Without this the rejection escaped the handler: the button stayed on
+      // "Signing in…" for ever and the reader was told nothing.
+      setPhase("idle");
+      setError(NETWORK_ERROR_MESSAGE);
+      return;
+    }
 
     if (!res.ok) {
-      setError(data.error || "Login failed");
+      setPhase("idle");
+      setError(
+        await messageForFailedResponse(
+          res,
+          "We couldn't sign you in. Check your email and password."
+        )
+      );
+      return;
+    }
+
+    const data = await res.json().catch(() => null);
+    if (!data?.token || !data?.user) {
+      setPhase("idle");
+      setError(UNREADABLE_RESPONSE_MESSAGE);
       return;
     }
 
     // Writes storage, fills the store and notifies other tabs in one call.
     useAuthStore.getState().signIn(data.user, data.token);
+
     // Read from the URL directly: useSearchParams would force this page into
     // client-side rendering unless it were wrapped in a Suspense boundary.
     const next = new URLSearchParams(window.location.search).get("next");
-    router.push(next && next.startsWith("/") ? next : "/recipes");
+    const destination = next && next.startsWith("/") ? next : "/recipes";
+
+    // Say so before navigating, and stay disabled until the new page replaces
+    // this one.
+    setPhase("signedIn");
+    router.push(destination);
   }
 
   return (
@@ -98,6 +135,21 @@ export default function LoginPage() {
           </div>
         )}
 
+        {phase === "signedIn" && (
+          <div
+            role="status"
+            className="mt-6 flex items-center gap-3 rounded-card border-2 border-green bg-green/10 px-4 py-3 text-[0.9375rem] text-brown animate-in fade-in slide-in-from-top-1 duration-200"
+          >
+            <span
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-brown bg-green text-xs text-beige"
+              aria-hidden
+            >
+              ✓
+            </span>
+            Signed in — opening your kitchen…
+          </div>
+        )}
+
         <form
           data-reveal-item
           onSubmit={handleSubmit}
@@ -129,7 +181,11 @@ export default function LoginPage() {
             disabled={busy}
             className="btn btn-primary group h-14 w-full text-[0.9rem] uppercase tracking-[0.15em]"
           >
-            {busy ? "Signing in…" : "Sign in"}
+            {phase === "sending"
+              ? "Signing in…"
+              : phase === "signedIn"
+                ? "One moment…"
+                : "Sign in"}
             <span
               aria-hidden
               className="transition-transform duration-300 group-hover:translate-x-1"

@@ -512,6 +512,39 @@ commit or delete as you prefer.
   not running. The database itself was verified directly — the three accounts,
   the counts, and a Prisma query through the app's own client.
 
+## Sign in / register: silent failures
+
+Reported from the deployed site: clicking "Sign in" did nothing — no redirect on
+success, no message on failure. Locally it worked, which was the clue. Two
+faults, both in the submit handlers:
+
+- **`fetch` had no `try`/`catch`.** A rejected fetch — no network, a function
+  that never answers, a 502 from the edge — threw straight out of the handler.
+  `setBusy(false)` never ran, no error was set: the button sat on "Signing in…"
+  for ever, saying nothing.
+- **`setBusy(false)` ran _before_ `router.push`.** On success the button snapped
+  back to "Sign in" and _then_ navigation began — a server round trip through
+  the proxy into a possibly cold function. For that whole window the page looked
+  untouched.
+
+Both forms now run a three-phase state (`idle` → `sending` → `signedIn`/`created`)
+and stay disabled through the redirect, with a green "Signed in — opening your
+kitchen…" status beside the error slot. `lib/apiMessage.ts` turns a failed
+response into something worth reading: the API's own message when there is one,
+otherwise a status-derived line, so a 500 from a route that threw at import no
+longer reports itself as "Login failed". Six unit tests cover it.
+
+Verified in a browser across all six outcomes — wrong password, crashed server
+(500 with an HTML body), network failure, success, duplicate email, and a
+network failure during registration — plus the success banner under an
+artificially slow redirect.
+
+**Unrelated test bug found on the way.** `tests/e2e/app.spec.ts` built a regex
+from a recipe title: `new RegExp(title)`. Harmless until the catalog contained
+"Tunisian Couscous (Couscous Tunisien)", whose parentheses became a regex group
+so the pattern stopped matching the heading it came from. It matches on the
+plain string now.
+
 ## Documented follow-ups (not implemented)
 
 - **`mushroom-risotto.jpg` still shows the wrong subject** (a mountain, not risotto) and `caesar-salad.jpg` contains hands. Both need regeneration against a valid `GEMINI_API_KEY`: `npm run generate:recipe-images -- mushroom-risotto.jpg caesar-salad.jpg`. The prompt bug that caused this class of failure is already fixed.
