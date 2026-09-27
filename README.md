@@ -7,7 +7,8 @@ An AI-powered meal planning application built with Next.js, Prisma, OpenAI, and 
 - **Framework:** Next.js 16 (App Router, Turbopack)
 - **Language:** TypeScript
 - **Database:** SQLite via Prisma ORM
-- **AI:** OpenAI API (GPT-4o-mini) for Recipe Bot
+- **AI:** Recipe Bot via the OpenAI SDK — OpenAI (`gpt-4o-mini`) or
+  Anthropic (`claude-haiku-4-5`), chosen by the key in `OPENAI_API_KEY`
 - **Image Generation:** Nano Banana Pro (recipe image generation)
 - **Payments:** Stripe (test mode)
 - **Auth:** Custom JWT authentication
@@ -128,7 +129,7 @@ Create a `.env` file in the project root with the variables below (a populated `
 | Variable                                       | Description                                                                             |
 | ---------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `DATABASE_URL`                                 | SQLite database file path                                                               |
-| `OPENAI_API_KEY`                               | OpenAI API key for Recipe Bot                                                           |
+| `OPENAI_API_KEY`                               | Recipe Bot model key. An OpenAI key (`sk-proj-…`) or an Anthropic one (`sk-ant-…`)      |
 | `STRIPE_SECRET_KEY`                            | Stripe secret key (test mode)                                                           |
 | `STRIPE_PUBLISHABLE_KEY`                       | Stripe publishable key (test mode)                                                      |
 | `STRIPE_WEBHOOK_SECRET`                        | Stripe webhook signing secret                                                           |

@@ -18,7 +18,11 @@ vi.mock("@/lib/prisma", () => ({ prisma: db }));
 const openaiMock = vi.hoisted(() => ({
   chat: { completions: { create: vi.fn() } },
 }));
-vi.mock("@/lib/openai", () => ({ openai: openaiMock }));
+vi.mock("@/lib/openai", () => ({
+  openai: openaiMock,
+  CHAT_MODEL: "test-model",
+  CHAT_PROVIDER: "OpenAI",
+}));
 
 const rateLimited = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/rateLimit", () => ({ isRateLimited: rateLimited }));

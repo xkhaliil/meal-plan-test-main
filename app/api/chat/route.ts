@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import type OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
-import { openai } from "@/lib/openai";
+import { CHAT_MODEL, CHAT_PROVIDER, openai } from "@/lib/openai";
 import { getUserFromRequest } from "@/lib/auth";
 import { generateRecipeImage } from "@/lib/nanoBanana";
 import { validateRecipeInput } from "@/lib/recipeInput";
 import { isRateLimited } from "@/lib/rateLimit";
 import { withTimeout } from "@/lib/withTimeout";
 
-const CHAT_MODEL = "gpt-4o-mini";
 const MAX_MESSAGE_LENGTH = 4000;
 const RATE_LIMIT_PER_HOUR = 20;
 const FREE_PLAN_DAILY_MESSAGE_LIMIT = 5;
@@ -238,8 +237,9 @@ export async function POST(req: NextRequest) {
 
     if (status === 401 || status === 403) {
       console.error(
-        "OpenAI rejected our credentials (%s). Recipe Bot is down until " +
+        "%s rejected our credentials (%s). Recipe Bot is down until " +
           "OPENAI_API_KEY in .env is replaced with a valid key.",
+        CHAT_PROVIDER,
         status
       );
       return NextResponse.json(

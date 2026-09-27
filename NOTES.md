@@ -378,6 +378,31 @@ what actually happens: `stripe.subscriptions.cancel` ends the subscription
 immediately, not at the end of the paid period. The success page's blurb, which
 claimed the opposite, was corrected to match.
 
+## Recipe Bot: which provider answers
+
+The key in `.env` was an Anthropic key (`sk-ant-…`) sitting in `OPENAI_API_KEY`.
+Both providers prefix with `sk-`, so it looked right and failed as a bare 401
+from `api.openai.com` — which the route correctly turned into "Recipe Bot isn't
+set up correctly on our side", with nothing saying why.
+
+`lib/openai.ts` now reads the prefix and configures itself:
+
+- `sk-ant-…` → `baseURL: https://api.anthropic.com/v1/`, `CHAT_MODEL:
+claude-haiku-4-5-20251001`. Anthropic serves an OpenAI-compatible Chat
+  Completions API, so the SDK, the route and the `create_recipe` tool call are
+  unchanged.
+- anything else → OpenAI, `gpt-4o-mini`, exactly as before.
+
+Switching provider is a `.env` edit and a restart. `CHAT_MODEL` and
+`CHAT_PROVIDER` are exported from `lib/openai.ts` rather than hardcoded in the
+handler, so the model can't drift from the base URL; the 401 log names whichever
+provider actually rejected the call.
+
+Verified against the running app, not just the unit tests: a plain question came
+back with an answer, and "create and save a recipe for lemon garlic butter
+shrimp" produced a saved recipe with nine ingredients — so tool calling survives
+the compatibility layer.
+
 ## Documented follow-ups (not implemented)
 
 - **`mushroom-risotto.jpg` still shows the wrong subject** (a mountain, not risotto) and `caesar-salad.jpg` contains hands. Both need regeneration against a valid `GEMINI_API_KEY`: `npm run generate:recipe-images -- mushroom-risotto.jpg caesar-salad.jpg`. The prompt bug that caused this class of failure is already fixed.

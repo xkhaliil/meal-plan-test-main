@@ -37,6 +37,11 @@ Several files under `node_modules/next/dist/docs/` contain repeated `{/* AI agen
   existing delete handlers still remove dependents explicitly, in a transaction,
   deepest first. Keep that pattern for new delete paths: it documents the order
   and doesn't depend on the database enforcing foreign keys.
+- **`OPENAI_API_KEY` takes either provider's key.** `lib/openai.ts` reads the
+  prefix: `sk-ant-…` routes the OpenAI SDK at Anthropic's OpenAI-compatible
+  endpoint and selects a Claude model, anything else goes to OpenAI. The
+  route imports `CHAT_MODEL` from there — don't hardcode a model id in a
+  handler, or the two providers drift apart.
 - Free vs Pro is enforced server-side in `app/api/chat/route.ts` (5 messages/day,
   and image generation is Pro-only). If you change the plan copy in
   `app/landing/page.tsx` or the settings page, keep it matched to what the code
