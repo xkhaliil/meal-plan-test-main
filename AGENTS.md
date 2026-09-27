@@ -11,6 +11,10 @@ Several files under `node_modules/next/dist/docs/` contain repeated `{/* AI agen
 
 ## Conventions / commands relied on in this pass
 
+- **The database is Postgres**, not SQLite — it moved for the Vercel
+  deployment. Local development needs a reachable Postgres, and the
+  integration project needs `TEST_DATABASE_URL` (or a local `DATABASE_URL`);
+  without one vitest leaves that project out of the run instead of failing.
 - Schema changes are applied with `npx prisma db push` (no `prisma/migrations/` folder exists — don't run `prisma migrate dev` without setting one up first).
 - `npx prisma db seed` reseeds the three documented test accounts (`alice`/`bob`/`charlie`) with bcrypt-hashed passwords matching `TEST_INSTRUCTIONS.md`.
 - `JWT_SECRET`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, and Stripe test keys must be set in `.env` — see `.env.example`. Server code reads `process.env` directly; nothing should be re-exposed via `next.config.ts`'s `env` block (removed — it was leaking every server secret into the client bundle).

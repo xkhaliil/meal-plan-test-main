@@ -403,6 +403,50 @@ back with an answer, and "create and save a recipe for lemon garlic butter
 shrimp" produced a saved recipe with nine ingredients — so tool calling survives
 the compatibility layer.
 
+## Vercel readiness
+
+- **Image optimization is off** — `images.unoptimized: true` in
+  `next.config.ts`. Every `next/image` renders the file as authored, so no
+  transformations are billed and a remote `src` needs no `remotePatterns`
+  allowlist. Verified on the rendered page: no `/_next/image?url=` anywhere.
+  `ChefLogo` keeps its own `unoptimized` prop as well — it is what stops the SVG
+  breaking if the global flag is ever turned back off.
+- **`npm run build` is now `prisma generate && next build`.** Vercel can restore
+  a cached `node_modules` without re-running `postinstall`, which leaves a stale
+  Prisma client against a changed schema.
+- **`engines.node` pinned to >=20.9**, so the host doesn't pick a major the app
+  has never been run on.
+- **`lib/nanoBanana.ts` checks that it can write before generating.** The write
+  into `public/generated` fails with EROFS on a read-only host; it used to find
+  out after paying for a 2K image and waiting 25 seconds. It now throws
+  `ImageStorageUnavailableError` up front, the `after()` block logs it, and the
+  recipe keeps its placeholder.
+- **SQLite → Postgres.** SQLite cannot be deployed to Vercel at all — read-only
+  filesystem, ephemeral instance — so `prisma/schema.prisma` is now
+  `postgresql`. The models needed no changes: they were already plain Strings,
+  Ints, DateTimes and Booleans with cuid ids.
+
+  What did change is everything that assumed a file:
+
+  - `tests/integration/globalSetup.ts` creates a uniquely named schema
+    (`test_…`) per run and drops it afterwards, instead of deleting and
+    recreating a `.db` file. Testing against the engine production uses is the
+    point — case sensitivity, transaction semantics and constraint errors all
+    differ between the two.
+  - `vitest.config.ts` includes the integration project only when a Postgres is
+    configured, and prints why when it doesn't. `npm test` still runs unit and
+    component tests on a machine with no database; CI always sets
+    `TEST_DATABASE_URL`, so nothing goes unenforced there.
+  - `tests/integration/database.ts` resolves the URL for both. It falls back to
+    `DATABASE_URL` only when that is localhost: these tests drop a schema, which
+    is not a thing to do by accident against a hosted database.
+  - Both CI jobs now run a `postgres:16` service container.
+
+  **Not verified locally**: Docker Desktop's daemon wasn't running on this
+  machine, so the Postgres path has been exercised by review and by the schema
+  validating/generating, not by a green integration run. CI's service container
+  is what proves it.
+
 ## Documented follow-ups (not implemented)
 
 - **`mushroom-risotto.jpg` still shows the wrong subject** (a mountain, not risotto) and `caesar-salad.jpg` contains hands. Both need regeneration against a valid `GEMINI_API_KEY`: `npm run generate:recipe-images -- mushroom-risotto.jpg caesar-salad.jpg`. The prompt bug that caused this class of failure is already fixed.

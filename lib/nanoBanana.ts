@@ -96,9 +96,35 @@ export async function generateImagenImageBuffer(
   return Buffer.from(b64, "base64");
 }
 
+/** Raised before the image is paid for, when there is nowhere to put it. */
+export class ImageStorageUnavailableError extends Error {
+  constructor(dir: string, cause: unknown) {
+    super(
+      `Cannot write generated images to ${dir}. Serverless hosts (Vercel among ` +
+        "them) mount the deployment read-only, so recipe photos need object " +
+        "storage — see the follow-up in NOTES.md. Recipes keep their placeholder " +
+        "until then."
+    );
+    this.name = "ImageStorageUnavailableError";
+    this.cause = cause;
+  }
+}
+
 export async function generateRecipeImage(
   imagePrompt: string
 ): Promise<string> {
+  const outDir = path.join(process.cwd(), "public", "generated");
+
+  // Checked first, deliberately: the write is the step that fails on a
+  // read-only host, and finding out afterwards means having already paid for
+  // an image and waited 25 seconds to throw it away.
+  try {
+    fs.mkdirSync(outDir, { recursive: true });
+    fs.accessSync(outDir, fs.constants.W_OK);
+  } catch (err) {
+    throw new ImageStorageUnavailableError(outDir, err);
+  }
+
   const buf = await generateImagenImageBuffer({
     prompt: imagePrompt,
     aspectRatio: "4:3",
@@ -107,8 +133,6 @@ export async function generateRecipeImage(
     jpegQuality: 92,
   });
   const filename = `recipe-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
-  const outDir = path.join(process.cwd(), "public", "generated");
-  fs.mkdirSync(outDir, { recursive: true });
   const outputPath = path.join(outDir, filename);
   fs.writeFileSync(outputPath, buf);
   return `/generated/${filename}`;

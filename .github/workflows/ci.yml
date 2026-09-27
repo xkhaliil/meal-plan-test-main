@@ -18,11 +18,30 @@ jobs:
     name: Format, lint, types, tests, build
     runs-on: ubuntu-latest
 
+    # Integration tests and the E2E seed need a real Postgres now that the app
+    # has left SQLite behind. Each integration run creates its own schema in
+    # here and drops it again.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mealplan_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
       # The app reads these at module scope, so a build fails without them.
-      # CI never talks to the real services: these are placeholders, and the
-      # test suite mocks Prisma rather than opening the database.
-      DATABASE_URL: "file:./ci.db"
+      # CI never talks to the real third-party services: those are placeholders.
+      # The database is real, because the integration project needs one.
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/mealplan_test"
+      TEST_DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/mealplan_test"
       JWT_SECRET: "ci-secret-not-used-outside-this-job"
       OPENAI_API_KEY: "sk-ci-placeholder"
       GEMINI_API_KEY: "ci-placeholder"
@@ -57,8 +76,10 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      # unit + integration + component projects. Integration builds its own
-      # throwaway SQLite database in globalSetup.
+      # unit + integration + component projects. Integration creates its own
+      # throwaway Postgres schema in globalSetup and drops it afterwards; it is
+      # left out of the run entirely if TEST_DATABASE_URL is unset, so the
+      # variable above is what keeps it enforced here.
       - name: Test (unit, integration, component)
         run: npm test
 
@@ -72,8 +93,26 @@ jobs:
     # Only worth the browser download once the cheap checks are green.
     needs: verify
 
+    # Integration tests and the E2E seed need a real Postgres now that the app
+    # has left SQLite behind. Each integration run creates its own schema in
+    # here and drops it again.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mealplan_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
-      DATABASE_URL: "file:./e2e.db"
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/mealplan_test"
       JWT_SECRET: "ci-secret-not-used-outside-this-job"
       OPENAI_API_KEY: "sk-ci-placeholder"
       GEMINI_API_KEY: "ci-placeholder"

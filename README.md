@@ -6,7 +6,7 @@ An AI-powered meal planning application built with Next.js, Prisma, OpenAI, and 
 
 - **Framework:** Next.js 16 (App Router, Turbopack)
 - **Language:** TypeScript
-- **Database:** SQLite via Prisma ORM
+- **Database:** PostgreSQL via Prisma ORM
 - **AI:** Recipe Bot via the OpenAI SDK — OpenAI (`gpt-4o-mini`) or
   Anthropic (`claude-haiku-4-5`), chosen by the key in `OPENAI_API_KEY`
 - **Image Generation:** Nano Banana Pro (recipe image generation)
@@ -20,12 +20,20 @@ An AI-powered meal planning application built with Next.js, Prisma, OpenAI, and 
 
 - Node.js 20.9+
 - npm
+- **A PostgreSQL database.** Anything reachable works: a local server, a
+  container (`docker run -d -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=mealplan -p 5432:5432 postgres:16`),
+  or a free hosted branch (Neon, Supabase). Put its URL in `DATABASE_URL`.
+  The app was on SQLite until it moved to Vercel, which cannot host a database
+  file — see "Deploying to Vercel".
 
 ### Setup
 
 ```bash
 # Install dependencies
 npm install
+
+# Copy the env template and fill in DATABASE_URL (plus the keys you need)
+cp .env.example .env
 
 # Generate Prisma client
 npx prisma generate
@@ -74,12 +82,12 @@ without it, line endings alone would fail the check on one platform or the other
 
 Four layers, each answering a different question:
 
-| Layer           | Where                                | Command                    | What it covers                                                                                                                                                                                                            |
-| --------------- | ------------------------------------ | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Unit**        | `lib/__tests__`, `app/api/__tests__` | `npm run test:unit`        | Single functions in isolation — the ingredient scaler's fraction maths, the recipe validator, the rate limiter's decisions. Prisma is mocked.                                                                             |
-| **Integration** | `tests/integration`                  | `npm run test:integration` | Real route handlers + real validator + real Prisma against a throwaway SQLite file, built fresh by `globalSetup`. Proves rows actually land, ingredients are replaced rather than orphaned, and a second user gets a 403. |
-| **Component**   | `tests/component`                    | `npm run test:component`   | UI pieces in jsdom with Testing Library — the confirm dialog only confirms when asked, pagination windows correctly, and `RichText` renders model output as text rather than markup.                                      |
-| **E2E**         | `tests/e2e`                          | `npm run test:e2e`         | A real browser against a real server: the landing page, the proxy redirecting signed-out visitors, signing in, searching the catalog, signing out.                                                                        |
+| Layer           | Where                                | Command                    | What it covers                                                                                                                                                                                                                                    |
+| --------------- | ------------------------------------ | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Unit**        | `lib/__tests__`, `app/api/__tests__` | `npm run test:unit`        | Single functions in isolation — the ingredient scaler's fraction maths, the recipe validator, the rate limiter's decisions. Prisma is mocked.                                                                                                     |
+| **Integration** | `tests/integration`                  | `npm run test:integration` | Real route handlers + real validator + real Prisma against a throwaway Postgres schema, created fresh by `globalSetup` and dropped after. Proves rows actually land, ingredients are replaced rather than orphaned, and a second user gets a 403. |
+| **Component**   | `tests/component`                    | `npm run test:component`   | UI pieces in jsdom with Testing Library — the confirm dialog only confirms when asked, pagination windows correctly, and `RichText` renders model output as text rather than markup.                                                              |
+| **E2E**         | `tests/e2e`                          | `npm run test:e2e`         | A real browser against a real server: the landing page, the proxy redirecting signed-out visitors, signing in, searching the catalog, signing out.                                                                                                |
 
 `npm test` runs the first three (they're fast and need no browser); `npm run
 test:all` adds the E2E suite. `npm run test:e2e:ui` opens Playwright's
@@ -87,6 +95,12 @@ interactive runner.
 
 Two things worth knowing:
 
+- **The integration project needs a Postgres it can create a schema in.** Set
+  `TEST_DATABASE_URL`, or point `DATABASE_URL` at a _local_ Postgres and it will
+  use that (it refuses to do this against a remote host — the tests create and
+  drop a schema). Without one the project is left out of the run and vitest says
+  so, rather than failing; CI always sets the variable, so nothing there goes
+  unchecked.
 - **E2E runs against the development database** and the seeded accounts, so the
   specs are deliberately read-only. Anything that creates or deletes data
   belongs in the integration project, which gets its own disposable database.
@@ -139,6 +153,74 @@ Create a `.env` file in the project root with the variables below (a populated `
 | `STRIPE_PRICE_ID` _or_ `STRIPE_PRO_PRODUCT_ID` | The Pro price. Either a recurring price (`price_…`), or the product to look one up from |
 
 **Product goals and seeded test accounts** are in [TEST_INSTRUCTIONS.md](./TEST_INSTRUCTIONS.md).
+
+## Deploying to Vercel
+
+The repo is Vercel-ready except for one thing that no amount of configuration
+fixes — read the database note first.
+
+### 1. Provision the database
+
+The schema is already Postgres (`prisma/schema.prisma`) — it was SQLite until
+this move, which Vercel cannot host at all: the deployment is read-only and the
+instance is discarded between invocations, so a database file is both
+unwritable and pointless.
+
+Create a database (Vercel Postgres, Neon, Supabase — any Postgres), set
+`DATABASE_URL` in the Vercel project, and push the schema and seed data from
+your machine with that URL:
+
+```bash
+DATABASE_URL="<your production url>" npx prisma db push
+DATABASE_URL="<your production url>" npx prisma db seed   # optional demo data
+```
+
+Use the **pooled** connection string in `DATABASE_URL` (Neon's `-pooler` host,
+Supabase's port 6543, or PgBouncer). Every serverless invocation opens its own
+client, and a direct connection runs a small Postgres out of slots quickly.
+
+### 2. Environment variables
+
+Set every variable from the table above in **Project → Settings → Environment
+Variables**, for Production and Preview. `.env` is gitignored and is not
+uploaded, so nothing is inherited from your machine.
+
+Two need different values than local:
+
+| Variable                | In production                                                                                 |
+| ----------------------- | --------------------------------------------------------------------------------------------- |
+| `JWT_SECRET`            | A fresh random string. Anyone holding it can mint sessions.                                   |
+| `STRIPE_WEBHOOK_SECRET` | The signing secret of the deployed endpoint (next step) — not the one `stripe listen` prints. |
+
+### 3. Stripe webhook
+
+Checkout only upgrades an account when the webhook arrives, so register the
+endpoint once the domain exists: **Stripe Dashboard → Developers → Webhooks →
+Add endpoint**, `https://<your-domain>/api/stripe/webhook`, subscribed to
+`checkout.session.completed`, `customer.subscription.updated` and
+`customer.subscription.deleted`. Copy its signing secret into
+`STRIPE_WEBHOOK_SECRET` and redeploy.
+
+(`/checkout/success` reconciles a paid session by itself if the webhook is slow
+or missing, but only for the person who just paid — cancellations still need
+the webhook.)
+
+### 4. Build
+
+Vercel detects Next.js and needs no overrides. `npm run build` is
+`prisma generate && next build`: the generate step is explicit because Vercel
+can restore a cached `node_modules` without re-running `postinstall`, which
+leaves a stale Prisma client.
+
+### 5. Known limits of a deployed instance
+
+- **Generated recipe photos don't persist.** `lib/nanoBanana.ts` writes into
+  `public/generated`, which is read-only in production; the code now detects
+  that and keeps the placeholder instead of paying for an image it can't save.
+  Object storage is the fix (see `NOTES.md`).
+- **Rate limiting** is database-backed, so it works across instances.
+- **Image optimization is off** (`images.unoptimized` in `next.config.ts`), so
+  no image transformations are billed and files are served exactly as authored.
 
 ## Architecture
 

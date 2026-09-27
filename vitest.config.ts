@@ -1,13 +1,41 @@
 import { defineConfig } from "vitest/config";
 import path from "path";
-
-/** One temp SQLite file for the integration project, created by its setup. */
-export const INTEGRATION_DB = path.resolve(
-  __dirname,
-  "tests/.tmp/integration.db"
-);
+import {
+  NO_DATABASE_MESSAGE,
+  resolveTestDatabaseUrl,
+} from "./tests/integration/database";
 
 const alias = { "@": path.resolve(__dirname, ".") };
+
+/**
+ * The integration project needs a Postgres it may create and drop a schema in.
+ * Without one it is left out of the run rather than failing it, so `npm test`
+ * still does something useful on a machine with no database — CI always sets
+ * TEST_DATABASE_URL, so nothing goes unchecked there.
+ */
+const testDatabaseUrl = resolveTestDatabaseUrl();
+if (!testDatabaseUrl) {
+  console.warn(
+    "[vitest] Skipping the integration project. " + NO_DATABASE_MESSAGE
+  );
+}
+
+const integrationProject = {
+  resolve: { alias },
+  test: {
+    name: "integration",
+    environment: "node",
+    include: ["tests/integration/**/*.test.ts"],
+    globalSetup: ["tests/integration/globalSetup.ts"],
+    // DATABASE_URL is deliberately absent: globalSetup picks the schema name
+    // and exports the URL before the workers are forked.
+    env: { JWT_SECRET: "test-secret-not-used-for-signing" },
+    // These share one schema, so they must not run in parallel with each
+    // other. `fileParallelism` is root-only, so the project pins itself to a
+    // single fork instead.
+    poolOptions: { forks: { singleFork: true } },
+  },
+};
 
 /**
  * Three vitest projects, so each layer can have the environment it needs and
@@ -35,25 +63,7 @@ export default defineConfig({
           env: { JWT_SECRET: "test-secret-not-used-for-signing" },
         },
       },
-      {
-        resolve: { alias },
-        test: {
-          name: "integration",
-          environment: "node",
-          include: ["tests/integration/**/*.test.ts"],
-          globalSetup: ["tests/integration/globalSetup.ts"],
-          // Real Prisma against a throwaway database. An absolute URL because
-          // Prisma resolves a relative `file:` against prisma/, not the cwd.
-          env: {
-            JWT_SECRET: "test-secret-not-used-for-signing",
-            DATABASE_URL: `file:${INTEGRATION_DB}`,
-          },
-          // These share one database file, so they must not run in parallel
-          // with each other. `fileParallelism` is root-only, so the project
-          // pins itself to a single fork instead.
-          poolOptions: { forks: { singleFork: true } },
-        },
-      },
+      ...(testDatabaseUrl ? [integrationProject] : []),
       {
         resolve: { alias },
         esbuild: { jsx: "automatic" },
