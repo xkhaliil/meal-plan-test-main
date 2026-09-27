@@ -5,7 +5,9 @@ import Link from "next/link";
 import ConfirmDialog from "@/app/components/ConfirmDialog";
 import CookIllustration from "@/app/components/CookIllustration";
 import RichText from "@/app/components/RichText";
+import { requestJson } from "@/lib/apiClient";
 import { useAuthStore } from "@/lib/stores/authStore";
+import { toast } from "@/lib/stores/toastStore";
 import { useState, useEffect, useRef } from "react";
 
 interface CreatedRecipe {
@@ -65,20 +67,27 @@ export default function ChatPage() {
   // The server keeps the conversation and feeds it back to the model, so the
   // page has to show it — otherwise the bot remembers what you can't see.
   useEffect(() => {
-    fetch("/api/chat", { headers: useAuthStore.getState().authHeaders() })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!data) return;
+    requestJson<{ messages?: Message[]; quota?: Quota }>(
+      "/api/chat",
+      { headers: useAuthStore.getState().authHeaders() },
+      "Could not load your conversation."
+    )
+      .then((result) => {
+        if (!result.ok) {
+          // Silently swallowed before: the transcript just came up empty, as
+          // if the chef had never been spoken to.
+          toast.error(result.error);
+          return;
+        }
         setMessages(
-          (data.messages ?? []).map((m: Message) => ({
+          (result.data.messages ?? []).map((m: Message) => ({
             id: m.id,
             role: m.role,
             content: m.content,
           }))
         );
-        setQuota(data.quota ?? null);
+        setQuota(result.data.quota ?? null);
       })
-      .catch(() => {})
       .finally(() => setHistoryLoading(false));
   }, []);
 
@@ -179,14 +188,18 @@ export default function ChatPage() {
    */
   async function startNewConversation() {
     setResetting(true);
-    const res = await fetch("/api/chat", {
-      method: "DELETE",
-      headers: useAuthStore.getState().authHeaders(),
-    }).catch(() => null);
+    const result = await requestJson(
+      "/api/chat",
+      { method: "DELETE", headers: useAuthStore.getState().authHeaders() },
+      "Could not clear the conversation."
+    );
     setResetting(false);
     setConfirmingReset(false);
 
-    if (!res?.ok) return;
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
     setMessages([]);
     setAtBottom(true);
   }

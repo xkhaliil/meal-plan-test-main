@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import AuthHydrator from "@/app/components/AuthHydrator";
 import PageTransition from "@/app/components/motion/PageTransition";
 import SmoothScroll from "@/app/components/motion/SmoothScroll";
+import Toaster from "@/app/components/Toaster";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -72,6 +73,7 @@ export default function RootLayout({
         <AuthHydrator />
         <SmoothScroll />
         <PageTransition>{children}</PageTransition>
+        <Toaster />
       </body>
     </html>
   );

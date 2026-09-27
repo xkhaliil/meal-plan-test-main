@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ConfirmDialog from "@/app/components/ConfirmDialog";
 import { scaleAmount } from "@/lib/ingredients";
+import { requestJson } from "@/lib/apiClient";
 import { useAuthStore } from "@/lib/stores/authStore";
+import { toast } from "@/lib/stores/toastStore";
 import { useRecipeStore } from "@/lib/stores/recipeStore";
 import { useMealPlanStore } from "@/lib/stores/mealPlanStore";
 import { useState, useEffect, use } from "react";
@@ -79,17 +81,22 @@ export default function RecipeDetailPage({
   const [scheduled, setScheduled] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/recipes/${id}`, {
-      headers: useAuthStore.getState().authHeaders(),
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.recipe) {
-          setRecipe(data.recipe);
-          setServings(data.recipe.servings);
-        } else setNotFound(true);
-      })
-      .catch(() => setNotFound(true));
+    requestJson<{ recipe?: Recipe }>(
+      `/api/recipes/${id}`,
+      { headers: useAuthStore.getState().authHeaders() },
+      "Could not load that recipe."
+    ).then((result) => {
+      if (result.ok && result.data.recipe) {
+        setRecipe(result.data.recipe);
+        setServings(result.data.recipe.servings);
+        return;
+      }
+      // A 404 is genuinely "not found"; a network failure or a 500 is not, and
+      // reporting one as the other sent people looking for a recipe they still
+      // had.
+      if (!result.ok && result.status !== 404) toast.error(result.error);
+      setNotFound(true);
+    });
 
     // Populates the "cook it this week" picker.
     useMealPlanStore.getState().fetchPlans();

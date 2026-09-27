@@ -545,6 +545,46 @@ from a recipe title: `new RegExp(title)`. Harmless until the catalog contained
 so the pattern stopped matching the heading it came from. It matches on the
 plain string now.
 
+## Errors that used to be silent: toasts
+
+Every mutation in the app was a bare `await fetch(...)`. A rejected fetch — no
+network, a function that never answers, a request cancelled mid-flight — escaped
+as an exception, and whether the reader was told anything depended on whether
+that particular click handler happened to have a `try`/`catch`. Most didn't.
+
+**`lib/apiClient.ts`** makes failure a value instead: `requestJson` never
+throws, and returns either the body or a message worth reading (the API's own
+when there is one, otherwise derived from the status by `lib/apiMessage.ts`).
+Both stores and every page fetch now go through it, so `readError` — which was
+duplicated in `recipeStore` and `mealPlanStore` and only ever read `data.error`
+— is gone.
+
+**`lib/stores/toastStore.ts` + `app/components/Toaster.tsx`** cover the actions
+with no error slot of their own. Errors get `role="alert"`, confirmations
+`role="status"`, the live region is always mounted, identical messages don't
+stack, and removal is scheduled in the store so a toast still expires while its
+page navigates away. Mounted once in the root layout.
+
+Forms keep their inline errors — a message about a field belongs beside the
+field — so nothing is reported twice. What gained a toast is what previously
+said nothing at all:
+
+| Action                               | Before                                       |
+| ------------------------------------ | -------------------------------------------- |
+| Recipe catalog / meal plan list load | list silently came up empty                  |
+| Settings page load                   | skeleton stayed on screen for ever           |
+| Chat transcript load                 | transcript came up empty, as if never used   |
+| "Start a new conversation"           | button did nothing, said nothing             |
+| Recipe detail load failure           | reported as "not found", whatever went wrong |
+| Upgrade / cancel subscription        | inline only; now both, plus a success toast  |
+
+Verified in a browser with the relevant API aborted: all five paths raise a
+toast. Ten new tests — five on `requestJson`, five on the Toaster.
+
+Two things left deliberately alone: the chat send path already renders its
+failure as an assistant bubble, and `ProPrice` falls back to "Billed monthly
+through Stripe" by design.
+
 ## Documented follow-ups (not implemented)
 
 - **`mushroom-risotto.jpg` still shows the wrong subject** (a mountain, not risotto) and `caesar-salad.jpg` contains hands. Both need regeneration against a valid `GEMINI_API_KEY`: `npm run generate:recipe-images -- mushroom-risotto.jpg caesar-salad.jpg`. The prompt bug that caused this class of failure is already fixed.

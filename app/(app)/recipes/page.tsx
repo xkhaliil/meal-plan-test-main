@@ -6,6 +6,8 @@ import ConfirmDialog from "@/app/components/ConfirmDialog";
 import Pagination from "@/app/components/Pagination";
 import Reveal from "@/app/components/motion/Reveal";
 import { getLenis } from "@/app/components/motion/SmoothScroll";
+import { requestJson } from "@/lib/apiClient";
+import { UNREADABLE_RESPONSE_MESSAGE } from "@/lib/apiMessage";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { useRecipeStore, type Recipe } from "@/lib/stores/recipeStore";
 import { useState, useEffect } from "react";
@@ -398,33 +400,39 @@ function CreateRecipeForm({
         return { name: name || line, amount: amount || "", unit: unit || "" };
       });
 
-    const res = await fetch("/api/recipes", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...useAuthStore.getState().authHeaders(),
+    const result = await requestJson<{ recipe?: Recipe }>(
+      "/api/recipes",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...useAuthStore.getState().authHeaders(),
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          prepTime: Number(prepTime) || 0,
+          cookTime: Number(cookTime) || 0,
+          servings: Number(servings) || 1,
+          cuisine: cuisine || null,
+          dietaryTags: dietaryTags || null,
+          ingredients,
+        }),
       },
-      body: JSON.stringify({
-        title,
-        description,
-        prepTime: Number(prepTime) || 0,
-        cookTime: Number(cookTime) || 0,
-        servings: Number(servings) || 1,
-        cuisine: cuisine || null,
-        dietaryTags: dietaryTags || null,
-        ingredients,
-      }),
-    });
-
-    const data = await res.json().catch(() => ({}));
+      "Could not save that recipe."
+    );
     setSaving(false);
 
-    if (!res.ok) {
-      setError(data.error || "Could not save recipe");
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    if (!result.data.recipe) {
+      setError(UNREADABLE_RESPONSE_MESSAGE);
       return;
     }
 
-    onCreated(data.recipe);
+    onCreated(result.data.recipe);
   }
 
   return (

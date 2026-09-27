@@ -1,7 +1,9 @@
 "use client";
 
 import { create } from "zustand";
+import { requestJson } from "@/lib/apiClient";
 import { useAuthStore } from "@/lib/stores/authStore";
+import { toast } from "@/lib/stores/toastStore";
 
 export interface Recipe {
   id: string;
@@ -48,11 +50,6 @@ interface RecipeState {
   deleteRecipe: (id: string) => Promise<Result>;
 }
 
-async function readError(res: Response, fallback: string) {
-  const data = await res.json().catch(() => ({}));
-  return (data as { error?: string }).error || fallback;
-}
-
 /**
  * The recipe catalog.
  *
@@ -69,52 +66,46 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
 
   fetchRecipes: async () => {
     set({ loading: true });
-    try {
-      const res = await fetch("/api/recipes", {
-        headers: useAuthStore.getState().authHeaders(),
-      });
-      const data = await res.json().catch(() => ({}));
-      set({ recipes: data.recipes ?? [], loaded: true });
-    } catch {
-      set({ loaded: true });
-    } finally {
-      set({ loading: false });
-    }
+    const result = await requestJson<{ recipes?: Recipe[] }>(
+      "/api/recipes",
+      { headers: useAuthStore.getState().authHeaders() },
+      "Could not load your recipes."
+    );
+    if (result.ok) set({ recipes: result.data.recipes ?? [] });
+    else toast.error(result.error);
+    set({ loaded: true, loading: false });
   },
 
   fetchOptions: async () => {
-    try {
-      const res = await fetch("/api/recipes?view=options", {
-        headers: useAuthStore.getState().authHeaders(),
-      });
-      const data = await res.json().catch(() => ({}));
-      set({ options: data.recipes ?? [] });
-    } catch {
-      /* the picker simply stays empty */
-    }
+    const result = await requestJson<{ recipes?: RecipeOption[] }>(
+      "/api/recipes?view=options",
+      { headers: useAuthStore.getState().authHeaders() },
+      "Could not load the recipe list."
+    );
+    // The picker simply stays empty; the page it sits on has already reported
+    // anything worth reporting.
+    if (result.ok) set({ options: result.data.recipes ?? [] });
   },
 
   addLocal: (recipe) => set({ recipes: [recipe, ...get().recipes] }),
 
   updateRecipe: async (id, body) => {
-    const res = await fetch(`/api/recipes/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...useAuthStore.getState().authHeaders(),
+    const result = await requestJson<{ recipe?: Recipe }>(
+      `/api/recipes/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...useAuthStore.getState().authHeaders(),
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
+      "Could not save your changes."
+    );
 
-    if (!res.ok) {
-      return {
-        ok: false,
-        error: await readError(res, `Could not save changes (${res.status}).`),
-      };
-    }
+    if (!result.ok) return { ok: false, error: result.error };
 
-    const data = await res.json().catch(() => ({}));
-    const updated: Recipe | undefined = data.recipe;
+    const updated = result.data.recipe;
     if (updated) {
       set({
         recipes: get().recipes.map((r) =>
@@ -127,17 +118,13 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
   },
 
   deleteRecipe: async (id) => {
-    const res = await fetch(`/api/recipes/${id}`, {
-      method: "DELETE",
-      headers: useAuthStore.getState().authHeaders(),
-    });
+    const result = await requestJson(
+      `/api/recipes/${id}`,
+      { method: "DELETE", headers: useAuthStore.getState().authHeaders() },
+      "Could not delete that recipe."
+    );
 
-    if (!res.ok) {
-      return {
-        ok: false,
-        error: await readError(res, `Could not delete it (${res.status}).`),
-      };
-    }
+    if (!result.ok) return { ok: false, error: result.error };
 
     set({
       recipes: get().recipes.filter((r) => r.id !== id),

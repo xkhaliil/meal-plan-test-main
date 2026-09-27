@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import ConfirmDialog from "@/app/components/ConfirmDialog";
 import ProPrice from "@/app/components/ProPrice";
 import RotatingBadge from "@/app/components/RotatingBadge";
+import { requestJson } from "@/lib/apiClient";
 import { useAuthStore } from "@/lib/stores/authStore";
+import { toast } from "@/lib/stores/toastStore";
 import { useState, useEffect } from "react";
 
 interface User {
@@ -67,28 +69,47 @@ export default function SettingsPage() {
     let cancelled = false;
 
     (async () => {
-      const meRes = await fetch("/api/auth/me", { headers: auth });
-      const meData = await meRes.json().catch(() => ({}));
-      if (cancelled || !meData.user) return;
-      setUser(meData.user);
+      const me = await requestJson<{ user?: User }>(
+        "/api/auth/me",
+        { headers: auth },
+        "Could not load your account."
+      );
+      if (cancelled) return;
+      if (!me.ok || !me.data.user) {
+        // Without this the page sat on its skeleton for ever, saying nothing.
+        toast.error(me.ok ? "Could not load your account." : me.error);
+        return;
+      }
+      setUser(me.data.user);
 
-      const [recipesRes, plansRes, chatRes] = await Promise.all([
-        fetch("/api/recipes?view=summary", { headers: auth }),
-        fetch("/api/meal-plans", { headers: auth }),
-        fetch("/api/chat", { headers: auth }),
+      const [recipes, plans, chat] = await Promise.all([
+        requestJson<{ mine?: number; total?: number }>(
+          "/api/recipes?view=summary",
+          { headers: auth },
+          "Could not load your recipe totals."
+        ),
+        requestJson<{ mealPlans?: unknown[] }>(
+          "/api/meal-plans",
+          { headers: auth },
+          "Could not load your meal plans."
+        ),
+        requestJson<{ quota?: Quota }>(
+          "/api/chat",
+          { headers: auth },
+          "Could not load your Recipe Bot quota."
+        ),
       ]);
-      const recipesData = await recipesRes.json().catch(() => ({}));
-      const plansData = await plansRes.json().catch(() => ({}));
-      const chatData = await chatRes.json().catch(() => ({}));
       if (cancelled) return;
 
+      // The counts are decoration beside the account itself; a failure here
+      // leaves them at zero rather than interrupting.
       setStats({
-        mine: recipesData.mine ?? 0,
-        catalog: recipesData.total ?? 0,
-        plans: (plansData.mealPlans ?? []).length,
+        mine: (recipes.ok && recipes.data.mine) || 0,
+        catalog: (recipes.ok && recipes.data.total) || 0,
+        plans: plans.ok ? (plans.data.mealPlans ?? []).length : 0,
       });
-      setQuota(chatData.quota ?? null);
-    })().catch(() => {});
+      setQuota(chat.ok ? (chat.data.quota ?? null) : null);
+    })();
 
     return () => {
       cancelled = true;
@@ -113,29 +134,33 @@ export default function SettingsPage() {
     setProfileError("");
     setSavingProfile(true);
 
-    const res = await fetch("/api/auth/me", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        ...useAuthStore.getState().authHeaders(),
+    const result = await requestJson<{ user: User; token?: string }>(
+      "/api/auth/me",
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...useAuthStore.getState().authHeaders(),
+        },
+        // undefined keys drop out of the JSON, which is what the handler treats
+        // as "leave this one alone".
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          currentPassword: form.currentPassword || undefined,
+          newPassword: form.newPassword || undefined,
+        }),
       },
-      // undefined keys drop out of the JSON, which is what the handler treats
-      // as "leave this one alone".
-      body: JSON.stringify({
-        name: form.name,
-        email: form.email,
-        currentPassword: form.currentPassword || undefined,
-        newPassword: form.newPassword || undefined,
-      }),
-    });
-    const data = await res.json().catch(() => ({}));
+      "Could not save your changes."
+    );
     setSavingProfile(false);
 
-    if (!res.ok) {
-      setProfileError(data.error || `Could not save changes (${res.status}).`);
+    if (!result.ok) {
+      setProfileError(result.error);
       return;
     }
 
+    const data = result.data;
     setUser(data.user);
     // A changed email means a re-issued token; the old one names an address
     // that no longer exists.
@@ -154,21 +179,22 @@ export default function SettingsPage() {
     setDeleteError("");
     setDeleting(true);
 
-    const res = await fetch("/api/auth/me", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        ...useAuthStore.getState().authHeaders(),
+    const result = await requestJson(
+      "/api/auth/me",
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...useAuthStore.getState().authHeaders(),
+        },
+        body: JSON.stringify({ password: deletePassword }),
       },
-      body: JSON.stringify({ password: deletePassword }),
-    });
-    const data = await res.json().catch(() => ({}));
+      "Could not delete the account."
+    );
 
-    if (!res.ok) {
+    if (!result.ok) {
       setDeleting(false);
-      setDeleteError(
-        data.error || `Could not delete the account (${res.status}).`
-      );
+      setDeleteError(result.error);
       return;
     }
 
@@ -182,22 +208,22 @@ export default function SettingsPage() {
   async function handleCancelSubscription() {
     setPlanError("");
     setBusy(true);
-    const res = await fetch("/api/stripe/cancel", {
-      method: "POST",
-      headers: useAuthStore.getState().authHeaders(),
-    });
-    const data = await res.json().catch(() => ({}));
+    const result = await requestJson(
+      "/api/stripe/cancel",
+      { method: "POST", headers: useAuthStore.getState().authHeaders() },
+      "Could not cancel the subscription."
+    );
     setBusy(false);
     // Either way the decision has been made; a failure belongs on the page
     // behind the dialog, not inside it.
     setConfirmingCancel(false);
 
-    if (!res.ok) {
-      setPlanError(
-        data.error || `Could not cancel subscription (${res.status}).`
-      );
+    if (!result.ok) {
+      setPlanError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Your subscription has been cancelled.");
 
     setUser((prev) => (prev ? { ...prev, plan: "free" } : prev));
     useAuthStore.getState().patchUser({ plan: "free" });
@@ -205,30 +231,30 @@ export default function SettingsPage() {
 
   async function handleUpgrade() {
     setBusy(true);
-    const res = await fetch("/api/stripe/checkout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...useAuthStore.getState().authHeaders(),
+    const result = await requestJson<{ url?: string }>(
+      "/api/stripe/checkout",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...useAuthStore.getState().authHeaders(),
+        },
       },
-    });
-    const raw = await res.text();
-    let data: { url?: string; error?: string } = {};
-    try {
-      data = raw ? (JSON.parse(raw) as typeof data) : {};
-    } catch {
-      /* non-JSON error body */
-    }
+      "Could not start checkout."
+    );
     setBusy(false);
 
-    if (!res.ok) {
-      setPlanError(data.error ?? `Could not start checkout (${res.status}).`);
+    if (!result.ok) {
+      setPlanError(result.error);
+      toast.error(result.error);
       return;
     }
-    if (data.url) {
-      window.location.href = data.url;
+    if (result.data.url) {
+      window.location.href = result.data.url;
     } else {
-      setPlanError("Billing did not return a checkout link.");
+      const message = "Billing did not return a checkout link.";
+      setPlanError(message);
+      toast.error(message);
     }
   }
 

@@ -1,7 +1,9 @@
 "use client";
 
 import { create } from "zustand";
+import { requestJson } from "@/lib/apiClient";
 import { useAuthStore } from "@/lib/stores/authStore";
+import { toast } from "@/lib/stores/toastStore";
 
 export interface MealPlanRecipe {
   id: string;
@@ -54,11 +56,6 @@ interface MealPlanState {
   removeMeal: (planId: string, entryId: string) => Promise<Result>;
 }
 
-async function readError(res: Response, fallback: string) {
-  const data = await res.json().catch(() => ({}));
-  return (data as { error?: string }).error || fallback;
-}
-
 function jsonHeaders() {
   return {
     "Content-Type": "application/json",
@@ -81,64 +78,49 @@ export const useMealPlanStore = create<MealPlanState>((set, get) => ({
 
   fetchPlans: async () => {
     set({ loading: true });
-    try {
-      const res = await fetch("/api/meal-plans", {
-        headers: useAuthStore.getState().authHeaders(),
-      });
-      const data = await res.json().catch(() => ({}));
-      set({ plans: data.mealPlans ?? [], loaded: true });
-    } catch {
-      set({ loaded: true });
-    } finally {
-      set({ loading: false });
-    }
+    const result = await requestJson<{ mealPlans?: MealPlan[] }>(
+      "/api/meal-plans",
+      { headers: useAuthStore.getState().authHeaders() },
+      "Could not load your meal plans."
+    );
+    if (result.ok) set({ plans: result.data.mealPlans ?? [] });
+    else toast.error(result.error);
+    set({ loaded: true, loading: false });
   },
 
   fetchPlan: async (id) => {
     set({ current: null, currentError: false });
-    try {
-      const res = await fetch(`/api/meal-plans/${id}`, {
-        headers: useAuthStore.getState().authHeaders(),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (data.mealPlan) set({ current: data.mealPlan });
-      else set({ currentError: true });
-    } catch {
-      set({ currentError: true });
-    }
+    const result = await requestJson<{ mealPlan?: MealPlan }>(
+      `/api/meal-plans/${id}`,
+      { headers: useAuthStore.getState().authHeaders() },
+      "Could not load that meal plan."
+    );
+    // The page renders its own failed state, so no toast on top of it.
+    if (result.ok && result.data.mealPlan)
+      set({ current: result.data.mealPlan });
+    else set({ currentError: true });
   },
 
   createPlan: async (body) => {
-    const res = await fetch("/api/meal-plans", {
-      method: "POST",
-      headers: jsonHeaders(),
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      return {
-        ok: false,
-        error: await readError(res, "Could not create meal plan"),
-      };
-    }
+    const result = await requestJson(
+      "/api/meal-plans",
+      { method: "POST", headers: jsonHeaders(), body: JSON.stringify(body) },
+      "Could not create that meal plan."
+    );
+    if (!result.ok) return { ok: false, error: result.error };
     await get().fetchPlans();
     return { ok: true };
   },
 
   updatePlan: async (id, body) => {
-    const res = await fetch(`/api/meal-plans/${id}`, {
-      method: "PUT",
-      headers: jsonHeaders(),
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      return {
-        ok: false,
-        error: await readError(res, `Could not save changes (${res.status}).`),
-      };
-    }
+    const result = await requestJson<{ mealPlan?: MealPlan }>(
+      `/api/meal-plans/${id}`,
+      { method: "PUT", headers: jsonHeaders(), body: JSON.stringify(body) },
+      "Could not save your changes."
+    );
+    if (!result.ok) return { ok: false, error: result.error };
 
-    const data = await res.json().catch(() => ({}));
-    const updated = data.mealPlan;
+    const updated = result.data.mealPlan;
     set({
       plans: get().plans.map((p) => (p.id === id ? { ...p, ...updated } : p)),
       // The update response has no meals on it; keep the ones on screen.
@@ -151,16 +133,12 @@ export const useMealPlanStore = create<MealPlanState>((set, get) => ({
   },
 
   deletePlan: async (id) => {
-    const res = await fetch(`/api/meal-plans/${id}`, {
-      method: "DELETE",
-      headers: useAuthStore.getState().authHeaders(),
-    });
-    if (!res.ok) {
-      return {
-        ok: false,
-        error: await readError(res, `Could not delete it (${res.status}).`),
-      };
-    }
+    const result = await requestJson(
+      `/api/meal-plans/${id}`,
+      { method: "DELETE", headers: useAuthStore.getState().authHeaders() },
+      "Could not delete that meal plan."
+    );
+    if (!result.ok) return { ok: false, error: result.error };
     set({
       plans: get().plans.filter((p) => p.id !== id),
       current: get().current?.id === id ? null : get().current,
@@ -169,17 +147,12 @@ export const useMealPlanStore = create<MealPlanState>((set, get) => ({
   },
 
   addMeal: async (planId, body) => {
-    const res = await fetch(`/api/meal-plans/${planId}`, {
-      method: "POST",
-      headers: jsonHeaders(),
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      return {
-        ok: false,
-        error: await readError(res, "Could not add that recipe"),
-      };
-    }
+    const result = await requestJson(
+      `/api/meal-plans/${planId}`,
+      { method: "POST", headers: jsonHeaders(), body: JSON.stringify(body) },
+      "Could not add that recipe."
+    );
+    if (!result.ok) return { ok: false, error: result.error };
     // Refetch: the response is the entry alone, and the grid wants the recipe
     // joined onto it.
     await get().fetchPlan(planId);
@@ -187,16 +160,12 @@ export const useMealPlanStore = create<MealPlanState>((set, get) => ({
   },
 
   removeMeal: async (planId, entryId) => {
-    const res = await fetch(`/api/meal-plans/${planId}/entries/${entryId}`, {
-      method: "DELETE",
-      headers: useAuthStore.getState().authHeaders(),
-    });
-    if (!res.ok) {
-      return {
-        ok: false,
-        error: await readError(res, `Could not remove it (${res.status}).`),
-      };
-    }
+    const result = await requestJson(
+      `/api/meal-plans/${planId}/entries/${entryId}`,
+      { method: "DELETE", headers: useAuthStore.getState().authHeaders() },
+      "Could not remove that meal."
+    );
+    if (!result.ok) return { ok: false, error: result.error };
 
     const current = get().current;
     if (current?.id === planId) {
