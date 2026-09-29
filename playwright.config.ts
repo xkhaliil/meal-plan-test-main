@@ -28,7 +28,7 @@ export default defineConfig({
     { name: "setup", testMatch: /auth\.setup\.ts/ },
     {
       name: "public",
-      testMatch: /(landing|guard|intro)\.spec\.ts/,
+      testMatch: /(landing|guard)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
     },
     {

@@ -290,31 +290,18 @@ leaving `active` alone, ignoring another account's subscription, replay safety
 checkout/cancel/price tests mock the SDK. One E2E test asserts the **live**
 price reaches the settings page, which a hardcoded fixture could never catch.
 
-## Landing intro
+## Landing intro (removed)
 
-An opening curtain on `/landing` (`app/components/LandingIntro.tsx`): the
-wordmark rises letter by letter out of its mask while a counter runs 000–100
-and a rule fills, then five slats lift right-to-left and the header and hero
-arrive just behind them. Built on the GSAP easings already in `lib/motion.ts`.
+`/landing` had an opening curtain — the wordmark rising letter by letter out of
+its mask, a counter running 000–100, five slats lifting right to left — in
+`app/components/LandingIntro.tsx`. It has been taken out: the component, its
+five Playwright specs, the `data-intro-reveal` hooks on the landing page, the
+`.landing-intro` rule in the root layout's `noscript` block, and `intro` from
+the `public` project's `testMatch`.
 
-The parts that matter more than the animation:
-
-- **Rendered in the server HTML**, not mounted on the client, so it covers the
-  page from the first paint. A client-only overlay flashes the content first.
-  Everything that hides it runs in `useGSAP` — a layout effect, before paint —
-  so a returning visitor never sees a frame of it.
-- **Once per tab** (`sessionStorage`), so navigating back to the landing page
-  doesn't replay it.
-- **Skipped entirely under `prefers-reduced-motion`.**
-- **Hidden outright without JavaScript** via the root layout's `noscript` block;
-  otherwise a no-JS visitor would sit behind a curtain that never lifts.
-- **Scroll is locked while it plays** (Lenis `stop()` plus `overflow: hidden`)
-  and released on completion _and_ on unmount, so navigating away mid-animation
-  can't leave the page frozen.
-
-Four Playwright tests cover exactly those behaviours: it appears then leaves,
-it doesn't block clicks afterwards, it plays once per tab, and reduced motion
-skips it.
+The page now renders straight into the hero, which was also the fastest thing
+it could do: the curtain was the only reason the hero needed a
+`clearProps` pass, and nothing on the page starts hidden any more.
 
 ## Sign in / register redesign
 
