@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore, useAuthUser } from "@/lib/stores/authStore";
+import { cn } from "@/lib/utils";
 
 /**
  * The account cluster in the navbar: an avatar button that opens Settings and
@@ -69,48 +70,53 @@ export default function UserMenu() {
         aria-expanded={open}
         aria-haspopup="true"
         aria-label={user ? `Account: ${user.name}` : "Account"}
-        className={`flex h-11 w-11 items-center justify-center rounded-full border-2 border-brown font-display text-lg uppercase transition-colors ${
+        className={cn(
+          "flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-colors",
           open || onSettings
-            ? "bg-brown text-yellow"
-            : "bg-beige text-brown hover:bg-brown hover:text-yellow"
-        }`}
+            ? "bg-zinc-900 text-white"
+            : "bg-zinc-900 text-white hover:bg-zinc-700"
+        )}
       >
         {initial}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+0.75rem)] z-30 w-64 overflow-hidden rounded-card border-2 border-brown bg-beige animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="border-b-2 border-brown px-4 py-3">
-            <p className="truncate font-display text-lg uppercase leading-none text-brown">
+        <div className="absolute right-0 top-[calc(100%+0.75rem)] z-30 w-64 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-[0_20px_40px_-16px_rgba(24,24,27,0.18)] animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="border-b border-zinc-100 px-4 py-3.5">
+            <p className="truncate text-sm font-semibold text-zinc-900">
               {user?.name ?? "Your account"}
             </p>
             {user?.email && (
-              <p className="mt-1.5 truncate text-xs text-brown/60">
+              <p className="mt-0.5 truncate text-xs text-zinc-500">
                 {user.email}
               </p>
             )}
             {user?.plan && (
-              <span className="tag mt-2.5 text-[0.65rem]">{user.plan}</span>
+              <span className="tag mt-2.5 capitalize">{user.plan}</span>
             )}
           </div>
 
-          <Link
-            href="/settings"
-            aria-current={onSettings ? "page" : undefined}
-            className="flex items-center justify-between px-4 py-3 text-sm uppercase tracking-wide text-brown transition-colors hover:bg-brown hover:text-yellow"
-          >
-            Settings
-            <span aria-hidden>→</span>
-          </Link>
+          <div className="p-1.5">
+            <Link
+              href="/settings"
+              aria-current={onSettings ? "page" : undefined}
+              className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+            >
+              Settings
+              <span aria-hidden className="text-zinc-400">
+                →
+              </span>
+            </Link>
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex w-full items-center justify-between border-t-2 border-brown px-4 py-3 text-left text-sm uppercase tracking-wide text-red transition-colors hover:bg-red hover:text-white"
-          >
-            Log out
-            <span aria-hidden>↪</span>
-          </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
+            >
+              Log out
+              <span aria-hidden>↪</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

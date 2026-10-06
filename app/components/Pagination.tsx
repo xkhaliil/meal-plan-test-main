@@ -22,7 +22,7 @@ function pageItems(page: number, totalPages: number): (number | "gap")[] {
 }
 
 const ARROW =
-  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-brown bg-beige text-base text-brown transition-colors enabled:hover:bg-brown enabled:hover:text-yellow disabled:opacity-35";
+  "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-sm text-zinc-600 transition-colors enabled:hover:border-zinc-300 enabled:hover:text-zinc-900 disabled:opacity-35";
 
 export default function Pagination({
   page,
@@ -38,9 +38,9 @@ export default function Pagination({
   return (
     <nav
       aria-label="Recipe pages"
-      className="mt-12 flex flex-col items-center gap-4 border-t-2 border-brown pt-8 sm:flex-row sm:justify-between"
+      className="mt-12 flex flex-col items-center gap-4 border-t border-zinc-200 pt-8 sm:flex-row sm:justify-between"
     >
-      <p className="order-2 text-xs uppercase tracking-[0.2em] text-brown/60 sm:order-1">
+      <p className="eyebrow order-2 sm:order-1">
         Page {page} of {totalPages}
       </p>
 
@@ -57,7 +57,7 @@ export default function Pagination({
 
         {pageItems(page, totalPages).map((item, i) =>
           item === "gap" ? (
-            <span key={`gap-${i}`} aria-hidden className="px-1 text-brown/45">
+            <span key={`gap-${i}`} aria-hidden className="px-1 text-zinc-400">
               …
             </span>
           ) : (
@@ -67,10 +67,10 @@ export default function Pagination({
               onClick={() => onChange(item)}
               aria-label={`Page ${item}`}
               aria-current={item === page ? "page" : undefined}
-              className={`h-11 min-w-11 shrink-0 rounded-pill border-2 border-brown px-3 text-sm uppercase tracking-wide transition-colors ${
+              className={`h-10 min-w-10 shrink-0 rounded-full border px-3 text-sm font-medium tabular-nums transition-colors ${
                 item === page
-                  ? "bg-brown text-yellow"
-                  : "bg-beige text-brown hover:bg-brown hover:text-yellow"
+                  ? "border-zinc-900 bg-zinc-900 text-white"
+                  : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-900"
               }`}
             >
               {item}

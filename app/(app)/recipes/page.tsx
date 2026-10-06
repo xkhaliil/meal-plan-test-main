@@ -122,34 +122,32 @@ export default function RecipesPage() {
 
   return (
     <div className="pb-20">
-      {/* ---------- Masthead: the landing page's oversized display type ---------- */}
-      <section className="border-b-2 border-brown px-5 py-12 sm:px-[30px] sm:py-16">
-        <div className="mx-auto flex max-w-7xl flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
+      {/* ---------- Masthead ---------- */}
+      <section className="px-5 pb-8 pt-10 sm:px-8 sm:pt-14">
+        <div className="mx-auto flex max-w-6xl flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-brown/60">
-              Your kitchen
-            </p>
-            <h1 className="mt-4 font-display text-[clamp(3rem,9vw,128px)] uppercase leading-[0.88] text-brown">
+            <p className="eyebrow">Your kitchen</p>
+            <h1 className="mt-4 text-5xl tracking-tight sm:text-6xl">
               The catalog
             </h1>
-            <p className="mt-6 max-w-[46ch] text-lg leading-relaxed text-brown/80">
+            <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-zinc-400">
               Everything you cook, in one place, ingredients, timings and tags,
               ready to drop into any week.
             </p>
           </div>
 
-          <div className="flex shrink-0 items-end gap-8">
+          <div className="flex shrink-0 items-end gap-6">
             <div>
-              <p className="font-display text-[clamp(3.5rem,8vw,96px)] leading-[0.8] text-red">
+              <p className="font-display text-5xl leading-none tracking-tight text-zinc-900">
                 {recipes.length}
               </p>
-              <p className="mt-3 text-xs uppercase tracking-[0.2em] text-brown/60">
+              <p className="eyebrow mt-2">
                 {recipes.length === 1 ? "recipe" : "recipes"} saved
               </p>
             </div>
             <button
               onClick={() => setShowCreateForm((v) => !v)}
-              className={`btn h-14 px-8 text-base sm:h-[68px] sm:px-10 sm:text-lg ${
+              className={`btn ${
                 showCreateForm ? "btn-secondary" : "btn-primary"
               }`}
             >
@@ -160,8 +158,8 @@ export default function RecipesPage() {
       </section>
 
       {showCreateForm && (
-        <section className="border-b-2 border-brown px-5 py-10 sm:px-[30px]">
-          <div className="mx-auto max-w-7xl">
+        <section className="px-5 pb-8 sm:px-8">
+          <div className="mx-auto max-w-6xl">
             <CreateRecipeForm
               onCreated={handleCreated}
               onCancel={() => setShowCreateForm(false)}
@@ -170,20 +168,20 @@ export default function RecipesPage() {
         </section>
       )}
 
-      {/* ---------- Filter band: sticks under the navbar on desktop ---------- */}
-      <section className="z-10 border-b-2 border-brown bg-yellow px-5 py-4 sm:px-[30px] md:sticky md:top-20">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      {/* ---------- Filter bar: a second frosted pill, stuck under the nav on desktop ---------- */}
+      <section className="z-10 px-5 sm:px-8 md:sticky md:top-[84px]">
+        <div className="glass mx-auto flex max-w-6xl flex-col gap-3 rounded-3xl border border-zinc-200/70 p-3 shadow-[0_10px_15px_-3px_rgba(228,228,231,0.3)] lg:flex-row lg:items-center lg:justify-between lg:rounded-full lg:py-2 lg:pl-2 lg:pr-5">
           <input
             type="search"
             placeholder="Search recipes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input h-12 w-full lg:max-w-xs"
+            className="input h-10 w-full rounded-full lg:max-w-xs"
             aria-label="Search recipes"
           />
 
           {cuisines.length > 0 && (
-            <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 py-1 lg:flex-1 lg:justify-center">
+            <div className="no-scrollbar -mx-1 flex min-w-0 gap-2 overflow-x-auto px-1 py-1 lg:flex-1">
               <FilterChip
                 active={cuisineFilter === null}
                 onClick={() => setCuisineFilter(null)}
@@ -204,15 +202,13 @@ export default function RecipesPage() {
             </div>
           )}
 
-          <p className="shrink-0 text-xs uppercase tracking-[0.2em] text-brown/60">
-            {countLabel}
-          </p>
+          <p className="eyebrow shrink-0 px-2">{countLabel}</p>
         </div>
       </section>
 
       {/* ---------- The grid ---------- */}
-      <section id="recipe-grid" className="px-5 py-12 sm:px-[30px]">
-        <div className="mx-auto max-w-7xl">
+      <section id="recipe-grid" className="px-5 py-10 sm:px-8">
+        <div className="mx-auto max-w-6xl">
           {loading ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {[0, 1, 2, 3, 4, 5].map((i) => (
@@ -275,7 +271,7 @@ export default function RecipesPage() {
               catalog, along with its ingredients and any meal-plan slots it
               sits in. This can&apos;t be undone.
             </p>
-            {deleteError && <p className="mt-3 text-red">{deleteError}</p>}
+            {deleteError && <p className="mt-3 text-red-600">{deleteError}</p>}
           </>
         }
         onConfirm={confirmDelete}
@@ -303,8 +299,10 @@ function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`tag h-9 shrink-0 px-4 py-0 text-[0.7rem] transition-colors ${
-        active ? "bg-brown text-yellow" : "hover:bg-brown hover:text-yellow"
+      className={`h-8 shrink-0 rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
+        active
+          ? "border-zinc-900 bg-zinc-900 text-white"
+          : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-900"
       }`}
     >
       {children}
@@ -325,10 +323,10 @@ function EmptyState({
 }) {
   return (
     <div className="card flex flex-col items-center px-6 py-20 text-center">
-      <p className="font-display text-[clamp(2rem,6vw,64px)] uppercase leading-[0.95] text-brown">
+      <p className="font-display text-4xl tracking-tight text-zinc-900">
         {filtering ? "No matches" : "Nothing cooking yet"}
       </p>
-      <p className="mt-5 max-w-[44ch] text-brown/70">
+      <p className="mt-4 max-w-[44ch] text-zinc-400">
         {filtering
           ? searchQuery
             ? `Nothing in the catalog matches “${searchQuery}”.`
@@ -358,11 +356,11 @@ function EmptyState({
 function RecipeCardSkeleton() {
   return (
     <div className="card overflow-hidden" aria-hidden>
-      <div className="h-56 animate-pulse border-b-2 border-brown bg-brown/10" />
+      <div className="aspect-[4/3] animate-pulse bg-zinc-100" />
       <div className="space-y-3 p-5">
-        <div className="h-7 w-3/4 animate-pulse rounded-pill bg-brown/10" />
-        <div className="h-4 w-full animate-pulse rounded-pill bg-brown/10" />
-        <div className="h-4 w-2/3 animate-pulse rounded-pill bg-brown/10" />
+        <div className="h-7 w-3/4 animate-pulse rounded-full bg-zinc-100" />
+        <div className="h-4 w-full animate-pulse rounded-full bg-zinc-100" />
+        <div className="h-4 w-2/3 animate-pulse rounded-full bg-zinc-100" />
       </div>
     </div>
   );
@@ -437,12 +435,10 @@ function CreateRecipeForm({
 
   return (
     <form onSubmit={handleSubmit} className="card p-6 sm:p-8">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b-2 border-brown pb-5">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-zinc-100 pb-5">
         <div>
-          <h2 className="font-display text-3xl uppercase leading-none text-brown sm:text-[44px]">
-            New recipe
-          </h2>
-          <p className="mt-2 text-sm text-brown/70">
+          <h2 className="text-3xl tracking-tight sm:text-4xl">New recipe</h2>
+          <p className="mt-2 text-sm text-zinc-400">
             Add something you cook often — you can schedule it into any week
             after.
           </p>
@@ -525,7 +521,7 @@ function CreateRecipeForm({
 
         <div>
           <label className="label" htmlFor="recipe-cuisine">
-            Cuisine <span className="text-brown/55">(optional)</span>
+            Cuisine <span className="text-zinc-500">(optional)</span>
           </label>
           <input
             id="recipe-cuisine"
@@ -539,7 +535,7 @@ function CreateRecipeForm({
         <div>
           <label className="label" htmlFor="recipe-tags">
             Dietary tags{" "}
-            <span className="text-brown/55">(comma separated)</span>
+            <span className="text-zinc-500">(comma separated)</span>
           </label>
           <input
             id="recipe-tags"
@@ -553,7 +549,7 @@ function CreateRecipeForm({
         <div className="sm:col-span-2">
           <label className="label" htmlFor="recipe-ingredients">
             Ingredients{" "}
-            <span className="text-brown/55">
+            <span className="text-zinc-500">
               — one per line: name, amount, unit
             </span>
           </label>
@@ -597,7 +593,7 @@ function RecipeCard({
   const totalTime = recipe.prepTime + recipe.cookTime;
 
   return (
-    <article className="card group relative isolate flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:bg-white">
+    <article className="card group relative isolate flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-[0_24px_48px_-24px_rgba(24,24,27,0.25)]">
       {/* One target for the whole card; the delete button sits above it. */}
       <Link
         href={`/recipes/${recipe.id}`}
@@ -605,33 +601,33 @@ function RecipeCard({
         aria-label={`Open ${recipe.title}`}
       />
 
-      <div className="relative h-56 overflow-hidden border-b-2 border-brown">
+      <div className="relative aspect-[4/3] overflow-hidden">
         <Image
           src={recipe.imageUrl}
           alt={recipe.title}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
         />
         {recipe.cuisine && (
-          <span className="tag absolute left-4 top-4 bg-yellow">
+          <span className="tag absolute left-3 top-3 bg-white/90 text-zinc-700 backdrop-blur">
             {recipe.cuisine}
           </span>
         )}
-        <span className="tag absolute bottom-4 right-4 bg-beige">
+        <span className="tag absolute bottom-3 right-3 bg-white/90 text-zinc-700 backdrop-blur">
           {totalTime} min
         </span>
       </div>
 
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="font-display text-2xl uppercase leading-[1.05] break-words text-brown transition-colors group-hover:text-red">
+        <h3 className="break-words font-sans text-base font-semibold leading-snug tracking-normal text-zinc-900">
           {recipe.title}
         </h3>
-        <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-brown/70">
+        <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-zinc-500">
           {recipe.description}
         </p>
 
-        <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-[0.7rem] uppercase tracking-[0.12em] text-brown/60">
+        <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-400">
           <span>Serves {recipe.servings}</span>
           <span>
             {recipe.ingredients.length}{" "}
@@ -650,20 +646,20 @@ function RecipeCard({
           </div>
         )}
 
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t-2 border-brown pt-4">
-          <span className="text-sm uppercase tracking-[0.12em] text-brown/70 transition-colors group-hover:text-red">
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 pt-4">
+          <span className="text-sm font-medium text-zinc-500 transition-colors group-hover:text-zinc-900">
             View recipe
           </span>
           <div className="flex items-center gap-2">
             {canDelete && (
               <button
                 onClick={onRequestDelete}
-                className="relative z-20 rounded-pill border-2 border-transparent px-3 py-1 text-xs uppercase tracking-wide text-brown/55 transition-colors hover:border-red hover:text-red"
+                className="relative z-20 rounded-full px-3 py-1 text-xs font-medium text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600"
               >
                 Delete
               </button>
             )}
-            <span className="btn-circle h-11 w-11 text-base transition-colors group-hover:bg-brown group-hover:text-yellow">
+            <span className="btn-circle h-9 w-9 text-sm transition-colors group-hover:border-zinc-900 group-hover:bg-zinc-900 group-hover:text-white">
               →
             </span>
           </div>

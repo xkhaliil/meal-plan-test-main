@@ -68,6 +68,31 @@ Several files under `node_modules/next/dist/docs/` contain repeated `{/* AI agen
 - **Rate limiting is database-backed** (`RateLimitHit`) and therefore async:
   `await isRateLimited(key, limit, windowMs)`. It fails open by design.
 
+## Design system
+
+- **The look follows faceiqlabs.com**: Playfair Display headlines, Manrope
+  body, Tailwind's `zinc-*` scale, pill buttons, 24px hairline cards. Use the
+  classes in `app/globals.css` (`btn btn-primary|secondary|ghost|danger`,
+  `card`, `input`, `label`, `tag`, `eyebrow`, `hero-wash`, `glass`) before
+  inventing new ones.
+- **No live SVG text under a transform that animates.** Chrome lays SVG text
+  out again whenever an ancestor's transform changes, so text on a moving or
+  rotating element costs a layout every frame — the landing hero ran at about
+  18fps until its rings were painted to canvas (`paintCircleText` in
+  `PlateHero.tsx`). Static SVG text is fine.
+- **Whatever hides the scrollbar must call `ScrollTrigger.refresh()` when it
+  gives it back.** Pins are measured in pixels at refresh; the landing intro's
+  scroll lock once left the pinned hero a scrollbar wider than the page, its
+  dome 7.5px off-centre from the shape below. Playwright hides scrollbars by
+  default — check layout with `ignoreDefaultArgs: ["--hide-scrollbars"]`.
+- **No colours outside that palette**, the landing intro and hero included:
+  zinc, white, and the blue/lavender of `hero-wash` (emerald and red only for
+  success and error states). `fruits.ts` holds them as hex because its SVGs
+  are built as strings — keep those values matched to Tailwind's.
+- The old palette (`bg-yellow`, `text-brown`, `rounded-pill`, …) is gone from
+  the theme; those classes now render nothing. Element defaults live in
+  `@layer base` — an unlayered rule would override every utility.
+
 ## Formatting and hooks
 
 - **Prettier owns formatting** (`.prettierrc`, `endOfLine: "auto"`).

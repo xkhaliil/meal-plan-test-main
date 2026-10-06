@@ -62,17 +62,17 @@ export default function ConfirmDialog({
         // than on the panel inside is a click on the backdrop.
         if (e.target === ref.current && !busy) onCancel();
       }}
-      className="m-auto w-[92vw] max-w-md rounded-card border-2 border-brown bg-beige p-0 text-brown backdrop:bg-brown/50"
+      className="m-auto w-[92vw] max-w-md rounded-3xl border border-zinc-200 bg-white p-0 text-zinc-900 shadow-[0_32px_64px_-24px_rgba(24,24,27,0.25)] backdrop:bg-zinc-950/25 backdrop:backdrop-blur-[2px]"
     >
       <div className="p-6 sm:p-7">
         <h2
           id="confirm-title"
-          className="font-display text-2xl uppercase leading-none text-brown"
+          className="font-display text-[28px] leading-tight tracking-tight text-zinc-900"
         >
           {title}
         </h2>
 
-        <div className="mt-4 text-sm leading-relaxed text-brown/75">{body}</div>
+        <div className="mt-3 text-sm leading-relaxed text-zinc-600">{body}</div>
 
         <div className="mt-7 flex flex-wrap justify-end gap-3">
           <button
@@ -88,7 +88,11 @@ export default function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={busy}
-            className={destructive ? "btn btn-danger" : "btn btn-primary"}
+            className={
+              destructive
+                ? "btn border-red-600 bg-red-600 text-white hover:border-red-700 hover:bg-red-700"
+                : "btn btn-primary"
+            }
           >
             {busy ? "Working..." : confirmLabel}
           </button>

@@ -20,16 +20,16 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body className="flex min-h-screen items-center justify-center bg-yellow px-5 text-center">
+      <body className="hero-wash flex min-h-screen items-center justify-center px-5 text-center">
         <div>
-          <h1 className="font-display text-4xl uppercase leading-none text-brown">
+          <h1 className="text-4xl tracking-tight sm:text-5xl">
             The app failed to start
           </h1>
-          <p className="mt-5 text-brown/70">
+          <p className="mt-5 text-lg text-zinc-400">
             Something broke before the page could render.
           </p>
           {error.digest && (
-            <p className="mt-3 font-mono text-xs text-brown/45">
+            <p className="mt-3 font-mono text-xs text-zinc-300">
               Reference: {error.digest}
             </p>
           )}

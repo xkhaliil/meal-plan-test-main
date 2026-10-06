@@ -25,21 +25,21 @@ export default function Toaster() {
           key={t.id}
           role={t.tone === "error" ? "alert" : "status"}
           className={cn(
-            "pointer-events-auto flex w-full max-w-md items-start gap-3 rounded-card border-2 border-brown bg-beige py-3 pl-3 pr-2 shadow-[4px_4px_0_0_#594b3c]",
+            "pointer-events-auto flex w-full max-w-md items-start gap-3 rounded-2xl border border-zinc-200 bg-white py-3 pl-3 pr-2 shadow-[0_20px_40px_-16px_rgba(24,24,27,0.2)]",
             "animate-in fade-in slide-in-from-bottom-2 duration-200"
           )}
         >
           <span
             className={cn(
-              "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-brown text-xs text-beige",
-              t.tone === "error" ? "bg-red" : "bg-green"
+              "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white",
+              t.tone === "error" ? "bg-red-600" : "bg-emerald-600"
             )}
             aria-hidden
           >
             {t.tone === "error" ? "!" : "✓"}
           </span>
 
-          <p className="flex-1 pt-0.5 text-sm leading-relaxed text-brown">
+          <p className="flex-1 pt-0.5 text-sm leading-relaxed text-zinc-700">
             {t.message}
           </p>
 
@@ -47,7 +47,7 @@ export default function Toaster() {
             type="button"
             onClick={() => dismiss(t.id)}
             aria-label="Dismiss"
-            className="shrink-0 rounded-full px-2 py-1 text-lg leading-none text-brown/50 transition-colors hover:text-brown"
+            className="shrink-0 rounded-full px-2 py-1 text-lg leading-none text-zinc-400 transition-colors hover:text-zinc-900"
           >
             ×
           </button>

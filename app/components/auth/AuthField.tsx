@@ -59,9 +59,10 @@ export default function AuthField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className={cn(
-            "input h-[52px]",
-            isPassword && "pr-[4.75rem]",
-            invalid && "border-red"
+            "input h-11",
+            isPassword && "pr-[4.5rem]",
+            invalid &&
+              "border-red-300 hover:border-red-300 focus:border-red-400"
           )}
           placeholder={placeholder}
           autoComplete={autoComplete}
@@ -78,7 +79,7 @@ export default function AuthField({
             // The label says what happens next; the state is in aria-pressed.
             aria-label={revealed ? "Hide password" : "Show password"}
             aria-pressed={revealed}
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-pill px-3 py-2 text-[0.65rem] uppercase tracking-[0.15em] text-brown/60 transition-colors hover:text-brown"
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
           >
             {revealed ? "Hide" : "Show"}
           </button>
@@ -89,8 +90,8 @@ export default function AuthField({
         <p
           id={hintId}
           className={cn(
-            "mt-2 px-1.5 text-xs leading-relaxed",
-            invalid ? "text-red" : "text-brown/55"
+            "mt-1.5 text-xs leading-relaxed",
+            invalid ? "text-red-600" : "text-zinc-500"
           )}
         >
           {hint}

@@ -30,9 +30,9 @@ const STATUS_LABEL: Record<Status, string> = {
 };
 
 const STATUS_STYLE: Record<Status, string> = {
-  active: "bg-green text-white",
-  upcoming: "bg-sky text-brown",
-  past: "bg-transparent text-brown/60",
+  active: "bg-emerald-50 text-emerald-700",
+  upcoming: "bg-sky-50 text-sky-700",
+  past: "bg-zinc-100 text-zinc-500",
 };
 
 function formatRange(start: string, end: string): string {
@@ -191,34 +191,32 @@ export default function MealPlansPage() {
   return (
     <div className="pb-20">
       {/* ---------- Masthead ---------- */}
-      <section className="border-b-2 border-brown px-5 py-12 sm:px-[30px] sm:py-16">
-        <div className="mx-auto flex max-w-7xl flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
+      <section className="px-5 pb-8 pt-10 sm:px-8 sm:pt-14">
+        <div className="mx-auto flex max-w-6xl flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-brown/60">
-              Your weeks
-            </p>
-            <h1 className="mt-4 font-display text-[clamp(3rem,9vw,128px)] uppercase leading-[0.88] text-brown">
+            <p className="eyebrow">Your weeks</p>
+            <h1 className="mt-4 text-5xl tracking-tight sm:text-6xl">
               Meal plans
             </h1>
-            <p className="mt-6 max-w-[46ch] text-lg leading-relaxed text-brown/80">
+            <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-zinc-400">
               Twenty-one slots a week, filled from recipes you already trust.
               Decide once, then stop deciding.
             </p>
           </div>
 
-          <div className="flex shrink-0 items-end gap-8">
+          <div className="flex shrink-0 items-end gap-6">
             <div>
-              <p className="font-display text-[clamp(3.5rem,8vw,96px)] leading-[0.8] text-red">
+              <p className="font-display text-5xl leading-none tracking-tight text-zinc-900">
                 {mealPlans.length}
               </p>
-              <p className="mt-3 text-xs uppercase tracking-[0.2em] text-brown/60">
+              <p className="eyebrow mt-2">
                 {mealPlans.length === 1 ? "plan" : "plans"}
                 {scheduledMeals > 0 && ` · ${scheduledMeals} meals`}
               </p>
             </div>
             <button
               onClick={() => setShowCreateForm((v) => !v)}
-              className={`btn h-14 px-8 text-base sm:h-[68px] sm:px-10 sm:text-lg ${
+              className={`btn ${
                 showCreateForm ? "btn-secondary" : "btn-primary"
               }`}
             >
@@ -229,15 +227,15 @@ export default function MealPlansPage() {
       </section>
 
       {showCreateForm && (
-        <section className="border-b-2 border-brown px-5 py-10 sm:px-[30px]">
-          <div className="mx-auto max-w-7xl">
+        <section className="px-5 pb-8 sm:px-8">
+          <div className="mx-auto max-w-6xl">
             <form onSubmit={handleCreate} className="card p-6 sm:p-8">
-              <div className="flex flex-wrap items-end justify-between gap-4 border-b-2 border-brown pb-5">
+              <div className="flex flex-wrap items-end justify-between gap-4 border-b border-zinc-100 pb-5">
                 <div>
-                  <h2 className="font-display text-3xl uppercase leading-none text-brown sm:text-[44px]">
+                  <h2 className="text-3xl tracking-tight sm:text-4xl">
                     New meal plan
                   </h2>
-                  <p className="mt-2 text-sm text-brown/70">
+                  <p className="mt-2 text-sm text-zinc-400">
                     Name the week and set its dates — the slots get filled from
                     the plan itself.
                   </p>
@@ -247,14 +245,14 @@ export default function MealPlansPage() {
                   <button
                     type="button"
                     onClick={() => fillWeek(0)}
-                    className="tag h-9 px-4 py-0 text-[0.7rem] transition-colors hover:bg-brown hover:text-yellow"
+                    className="h-8 rounded-full border border-zinc-200 bg-white px-3.5 text-[13px] font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:text-zinc-900"
                   >
                     This week
                   </button>
                   <button
                     type="button"
                     onClick={() => fillWeek(1)}
-                    className="tag h-9 px-4 py-0 text-[0.7rem] transition-colors hover:bg-brown hover:text-yellow"
+                    className="h-8 rounded-full border border-zinc-200 bg-white px-3.5 text-[13px] font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:text-zinc-900"
                   >
                     Next week
                   </button>
@@ -315,8 +313,8 @@ export default function MealPlansPage() {
 
       {/* ---------- Status band ---------- */}
       {mealPlans.length > 0 && (
-        <section className="z-10 border-b-2 border-brown bg-yellow px-5 py-4 sm:px-[30px] md:sticky md:top-20">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
+        <section className="z-10 px-5 sm:px-8 md:sticky md:top-[84px]">
+          <div className="glass mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 rounded-full border border-zinc-200/70 py-2 pl-2 pr-5 shadow-[0_10px_15px_-3px_rgba(228,228,231,0.3)]">
             <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 py-1">
               <StatusChip
                 active={statusFilter === null}
@@ -339,7 +337,7 @@ export default function MealPlansPage() {
                 ))}
             </div>
 
-            <p className="shrink-0 text-xs uppercase tracking-[0.2em] text-brown/60">
+            <p className="eyebrow shrink-0">
               {statusFilter
                 ? `${visiblePlans.length} of ${mealPlans.length}`
                 : `${mealPlans.length} total`}
@@ -349,8 +347,8 @@ export default function MealPlansPage() {
       )}
 
       {/* ---------- The plans ---------- */}
-      <section className="px-5 py-12 sm:px-[30px]">
-        <div className="mx-auto max-w-7xl">
+      <section className="px-5 py-10 sm:px-8">
+        <div className="mx-auto max-w-6xl">
           {loading ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
               {[0, 1, 2].map((i) => (
@@ -398,7 +396,7 @@ export default function MealPlansPage() {
               {pendingDelete?.recipes.length ?? 0} meals scheduled on it will be
               removed. The recipes themselves stay in your catalog.
             </p>
-            {deleteError && <p className="mt-3 text-red">{deleteError}</p>}
+            {deleteError && <p className="mt-3 text-red-600">{deleteError}</p>}
           </>
         }
         onConfirm={confirmDeletePlan}
@@ -426,8 +424,10 @@ function StatusChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`tag h-9 shrink-0 gap-1.5 px-4 py-0 text-[0.7rem] transition-colors ${
-        active ? "bg-brown text-yellow" : "hover:bg-brown hover:text-yellow"
+      className={`flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
+        active
+          ? "border-zinc-900 bg-zinc-900 text-white"
+          : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-900"
       }`}
     >
       {children}
@@ -446,10 +446,10 @@ function EmptyState({
 }) {
   return (
     <div className="card flex flex-col items-center px-6 py-20 text-center">
-      <p className="font-display text-[clamp(2rem,6vw,64px)] uppercase leading-[0.95] text-brown">
+      <p className="font-display text-4xl tracking-tight text-zinc-900">
         {filtered ? "None of those" : "No weeks planned"}
       </p>
-      <p className="mt-5 max-w-[44ch] text-brown/70">
+      <p className="mt-4 max-w-[44ch] text-zinc-400">
         {filtered
           ? "Nothing in that state right now."
           : "Start a week, then drop recipes into its breakfast, lunch and dinner slots."}
@@ -477,11 +477,11 @@ function EmptyState({
 function PlanCardSkeleton() {
   return (
     <div className="card p-6" aria-hidden>
-      <div className="h-5 w-24 animate-pulse rounded-pill bg-brown/10" />
-      <div className="mt-4 h-8 w-2/3 animate-pulse rounded-pill bg-brown/10" />
-      <div className="mt-3 h-4 w-1/3 animate-pulse rounded-pill bg-brown/10" />
-      <div className="mt-7 h-[72px] w-full animate-pulse rounded-card bg-brown/10" />
-      <div className="mt-7 h-9 w-full animate-pulse rounded-pill bg-brown/10" />
+      <div className="h-5 w-24 animate-pulse rounded-full bg-zinc-100" />
+      <div className="mt-4 h-8 w-2/3 animate-pulse rounded-full bg-zinc-100" />
+      <div className="mt-3 h-4 w-1/3 animate-pulse rounded-full bg-zinc-100" />
+      <div className="mt-7 h-[72px] w-full animate-pulse rounded-3xl bg-zinc-100" />
+      <div className="mt-7 h-9 w-full animate-pulse rounded-full bg-zinc-100" />
     </div>
   );
 }
@@ -498,7 +498,7 @@ function PlanCard({
   const thumbnails = plan.recipes.slice(0, 4);
 
   return (
-    <article className="card group relative isolate flex flex-col p-6 transition-all duration-300 hover:-translate-y-1 hover:bg-white">
+    <article className="card group relative isolate flex flex-col p-6 transition-shadow duration-300 hover:shadow-[0_24px_48px_-24px_rgba(24,24,27,0.25)]">
       {/* One target for the card; the delete button sits above it. */}
       <Link
         href={`/meal-plans/${plan.id}`}
@@ -509,15 +509,15 @@ function PlanCard({
         <span className={`tag shrink-0 ${STATUS_STYLE[status]}`}>
           {STATUS_LABEL[status]}
         </span>
-        <span className="text-[0.7rem] uppercase tracking-[0.12em] text-brown/55">
+        <span className="text-xs text-zinc-400">
           {filled.size} / {TOTAL_SLOTS} slots
         </span>
       </div>
 
-      <h2 className="mt-4 font-display text-2xl uppercase leading-[1.05] break-words text-brown transition-colors group-hover:text-red">
+      <h2 className="mt-4 break-words text-[26px] leading-tight tracking-tight">
         {plan.name}
       </h2>
-      <p className="mt-2 text-sm text-brown/70">
+      <p className="mt-1.5 text-sm text-zinc-400">
         {formatRange(plan.startDate, plan.endDate)}
       </p>
 
@@ -528,7 +528,7 @@ function PlanCard({
           <span
             key={`${initial}-${i}`}
             aria-hidden
-            className="text-center text-[0.6rem] uppercase tracking-wide text-brown/45"
+            className="text-center text-[10px] font-medium uppercase tracking-wide text-zinc-300"
           >
             {initial}
           </span>
@@ -538,17 +538,17 @@ function PlanCard({
           <Fragment key={meal}>
             <span
               aria-hidden
-              className="pr-1.5 text-[0.6rem] uppercase tracking-wide text-brown/45"
+              className="pr-1.5 text-[10px] font-medium uppercase tracking-wide text-zinc-300"
             >
               {meal.charAt(0)}
             </span>
             {DAYS.map((day) => (
               <span
                 key={day}
-                className={`h-5 rounded-[7px] border-2 ${
+                className={`h-5 rounded-md ${
                   filled.has(`${day}|${meal}`)
-                    ? "border-brown bg-brown"
-                    : "border-brown/20"
+                    ? "bg-zinc-900"
+                    : "border border-dashed border-zinc-200"
                 }`}
               />
             ))}
@@ -559,14 +559,14 @@ function PlanCard({
         {filled.size} of {TOTAL_SLOTS} meal slots filled.
       </p>
 
-      <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t-2 border-brown pt-5">
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 pt-5">
         {thumbnails.length > 0 ? (
           <div className="flex items-center gap-2">
             <div className="flex -space-x-3">
               {thumbnails.map((item) => (
                 <span
                   key={item.id}
-                  className="relative h-9 w-9 overflow-hidden rounded-full border-2 border-brown bg-beige"
+                  className="relative h-8 w-8 overflow-hidden rounded-full border-2 border-white bg-zinc-100"
                 >
                   <Image
                     src={item.recipe.imageUrl}
@@ -579,25 +579,23 @@ function PlanCard({
               ))}
             </div>
             {plan.recipes.length > thumbnails.length && (
-              <span className="text-xs uppercase tracking-wide text-brown/55">
+              <span className="text-xs text-zinc-400">
                 +{plan.recipes.length - thumbnails.length}
               </span>
             )}
           </div>
         ) : (
-          <span className="text-xs uppercase tracking-[0.12em] text-brown/45">
-            Nothing scheduled
-          </span>
+          <span className="text-xs text-zinc-400">Nothing scheduled</span>
         )}
 
         <div className="flex items-center gap-2">
           <button
             onClick={onRequestDelete}
-            className="relative z-20 rounded-pill border-2 border-transparent px-3 py-1 text-xs uppercase tracking-wide text-brown/55 transition-colors hover:border-red hover:text-red"
+            className="relative z-20 rounded-full px-3 py-1 text-xs font-medium text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600"
           >
             Delete
           </button>
-          <span className="btn-circle h-11 w-11 text-base transition-colors group-hover:bg-brown group-hover:text-yellow">
+          <span className="btn-circle h-9 w-9 text-sm transition-colors group-hover:border-zinc-900 group-hover:bg-zinc-900 group-hover:text-white">
             →
           </span>
         </div>

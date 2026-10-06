@@ -5,41 +5,28 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Design tokens taken from cafebinocle.com (Café Binocle): its own CSS exposes
-   --theme-yellow / --theme-beige / --theme-red / --text-color, plus a pill-heavy
-   radius scale (50px pills, 25-30px cards, 50% circles). */
+/* Design language from faceiqlabs.com: a white canvas with soft blue washes,
+   Tailwind's zinc scale for everything monochrome, Playfair Display for
+   headlines, Manrope for the rest, pill buttons and 24px frosted cards. The
+   palette below is Tailwind's own zinc, so components use `zinc-*` utilities
+   directly rather than bespoke tokens. */
 @theme {
-  --color-yellow: #ffe26e;
-  --color-beige: #fffeec;
-  --color-brown: #594b3c;
-  --color-brown-soft: #594b3c99;
-  --color-red: #ef5b34;
-  --color-green: #00a881;
-  --color-sky: #8ad7f7;
-  --color-pink: #f8ccdf;
-  --color-purple: #553ee7;
-  --color-ink: #1a1512;
+  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 
-  --radius-pill: 50px;
-  --radius-card: 25px;
-
-  --font-display: var(--font-caprasimo), "Arial Black", sans-serif;
-  --font-sans: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Only .input had any focus style, so keyboard users had nothing to follow on
-   buttons, links, cards or the dialog. :focus-visible keeps it off mouse
-   clicks. */
 :focus-visible {
-  outline: 3px solid var(--color-brown);
-  outline-offset: 3px;
-  border-radius: 2px;
+  outline: 2px solid #18181b;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
-/* On brown/red surfaces a brown ring is invisible. */
-.bg-brown :focus-visible,
-.bg-red :focus-visible {
-  outline-color: var(--color-yellow);
+/* On the dark band a dark ring is invisible. */
+.bg-zinc-950 :focus-visible,
+.bg-zinc-900 :focus-visible {
+  outline-color: #ffffff;
 }
 
 /* Visible only once focused — the first tab stop on every page. */
@@ -54,19 +41,27 @@
   top: 1rem;
 }
 
-body {
-  background-color: var(--color-yellow);
-  color: var(--color-brown);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-}
+/* Element defaults live in the base layer. Unlayered, they would beat every
+   utility regardless of specificity — `font-sans` on a card title, or
+   `text-white` on a heading in the dark band, would silently lose. */
+@layer base {
+  body {
+    background-color: #ffffff;
+    color: #0a0a0a;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-h1,
-h2,
-h3 {
-  font-family: var(--font-display);
-  font-weight: 400;
-  line-height: 0.95;
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    color: #18181b;
+  }
 }
 
 /* Scroll rows that overflow only on narrow screens; Windows would otherwise
@@ -80,34 +75,65 @@ h3 {
   }
 }
 
-/* Paper-ish canvas: a faint dot grid behind the chat transcript. */
+/* A faint dot grid behind the chat transcript. */
 @utility dot-grid {
   background-image: radial-gradient(
-    rgba(89, 75, 60, 0.13) 1.5px,
-    transparent 1.5px
+    rgba(24, 24, 27, 0.07) 1px,
+    transparent 1px
   );
   background-size: 22px 22px;
 }
 
+/* The soft blue-lavender haze behind faceiqlabs.com's hero and closing call
+   to action. Pure CSS, so it costs no request and no LCP. */
+@utility hero-wash {
+  background-image:
+    radial-gradient(
+      55% 60% at 78% 32%,
+      rgba(191, 219, 254, 0.55) 0%,
+      rgba(191, 219, 254, 0) 70%
+    ),
+    radial-gradient(
+      45% 50% at 18% 18%,
+      rgba(221, 214, 254, 0.35) 0%,
+      rgba(221, 214, 254, 0) 70%
+    ),
+    linear-gradient(180deg, #f1f5f9 0%, #f8fafc 45%, #ffffff 100%);
+}
+
+/* The frosted surface used by the floating nav and the feature cards. */
+@utility glass {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
 @layer components {
-  /* --- Buttons: pills, thick brown outlines, red primary --- */
+  /* --- Buttons: pills, zinc-900 primary, hairline secondary --- */
 
   .btn {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border-radius: var(--radius-pill);
-    padding: 0.75rem 1.75rem;
-    font-size: 1rem;
+    min-height: 2.75rem;
+    padding: 0 1.25rem;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    font-size: 0.875rem;
     font-weight: 500;
-    line-height: 1.5rem;
-    cursor: pointer;
+    line-height: 1.25rem;
     white-space: nowrap;
-    transition: all 0.3s ease;
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.2s var(--ease-out-expo);
+  }
+
+  .btn:active:not(:disabled) {
+    transform: scale(0.98);
   }
 
   .btn:disabled {
@@ -115,196 +141,151 @@ h3 {
     cursor: not-allowed;
   }
 
-  .btn::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    transform: translateY(101%);
-    transition: transform 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
-  }
-
-  .btn:hover:not(:disabled)::after {
-    transform: translateY(0);
-  }
-
-  .btn:disabled::after {
-    display: none;
-  }
-
   .btn-primary {
-    background-color: var(--color-red);
-    color: #fff;
-    border: 2px solid var(--color-brown);
+    background-color: #18181b;
+    border-color: #18181b;
+    color: #ffffff;
   }
 
-  .btn-primary::after {
-    background-color: var(--color-brown);
+  .btn-primary:hover:not(:disabled) {
+    background-color: #27272a;
+    border-color: #27272a;
   }
 
   .btn-secondary {
-    background-color: transparent;
-    color: var(--color-brown);
-    border: 2px solid var(--color-brown);
+    background-color: #ffffff;
+    border-color: #e4e4e7;
+    color: #18181b;
   }
 
-  .btn-secondary::after {
-    background-color: var(--color-beige);
+  .btn-secondary:hover:not(:disabled) {
+    background-color: #fafafa;
+    border-color: #d4d4d8;
   }
 
   .btn-ghost {
     background-color: transparent;
-    color: var(--color-brown);
-    border: 2px solid transparent;
+    color: #71717a;
   }
 
   .btn-ghost:hover:not(:disabled) {
-    border-color: var(--color-brown);
+    color: #18181b;
   }
 
   .btn-danger {
-    background-color: transparent;
-    color: var(--color-red);
-    border: 2px solid var(--color-red);
+    background-color: #ffffff;
+    border-color: #fecaca;
+    color: #dc2626;
   }
 
-  .btn-danger::after {
-    background-color: #fde8e2;
+  .btn-danger:hover:not(:disabled) {
+    background-color: #fef2f2;
+    border-color: #fca5a5;
   }
 
-  /* Circular arrow button, as used beside each section heading on the café site. */
   .btn-circle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    border: 2px solid var(--color-brown);
-    color: var(--color-brown);
-    font-size: 1.5rem;
-    transition: all 0.3s ease;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 9999px;
+    border: 1px solid #e4e4e7;
+    background-color: #ffffff;
+    color: #18181b;
     flex-shrink: 0;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease;
   }
 
   .btn-circle:hover {
-    background-color: var(--color-brown);
-    color: var(--color-yellow);
+    background-color: #fafafa;
+    border-color: #d4d4d8;
   }
 
   /* --- Surfaces --- */
 
   .card {
-    background-color: var(--color-beige);
-    border: 2px solid var(--color-brown);
-    border-radius: var(--radius-card);
+    background-color: #ffffff;
+    border: 1px solid #e4e4e7;
+    border-radius: 1.5rem;
+    box-shadow:
+      0 1px 2px rgba(24, 24, 27, 0.04),
+      0 12px 32px -16px rgba(24, 24, 27, 0.12);
+  }
+
+  /* Small caps over a heading — "COMMITMENT PAYS OFF" on faceiqlabs.com. */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #a1a1aa;
   }
 
   .label {
     display: block;
     font-size: 0.8125rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--color-brown);
-    opacity: 0.7;
+    font-weight: 500;
+    color: #3f3f46;
     margin-bottom: 0.375rem;
   }
 
   .input {
     width: 100%;
-    background-color: #fff;
-    border: 2px solid var(--color-brown);
-    border-radius: var(--radius-pill);
-    padding: 0.75rem 1.25rem;
-    font-size: 1rem;
-    color: var(--color-brown);
-    transition: box-shadow 0.2s ease;
+    min-height: 2.75rem;
+    background-color: #ffffff;
+    border: 1px solid #e4e4e7;
+    border-radius: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9375rem;
+    color: #18181b;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
   }
 
   .input::placeholder {
-    color: var(--color-brown);
-    opacity: 0.45;
+    color: #a1a1aa;
+  }
+
+  .input:hover {
+    border-color: #d4d4d8;
   }
 
   .input:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(89, 75, 60, 0.18);
+    border-color: #a1a1aa;
+    box-shadow: 0 0 0 4px rgba(24, 24, 27, 0.06);
   }
 
   textarea.input {
-    border-radius: var(--radius-card);
+    border-radius: 1rem;
   }
 
   .tag {
     display: inline-flex;
     align-items: center;
-    border-radius: var(--radius-pill);
-    border: 2px solid var(--color-brown);
-    background-color: #fff;
-    color: var(--color-brown);
-    padding: 0.125rem 0.75rem;
+    border-radius: 9999px;
+    background-color: #f4f4f5;
+    color: #52525b;
+    padding: 0.125rem 0.625rem;
     font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    font-weight: 500;
   }
 
   .alert-error {
-    border-radius: var(--radius-card);
-    background-color: #fde8e2;
-    border: 2px solid var(--color-red);
-    color: #8c2a12;
+    border-radius: 0.875rem;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
     padding: 0.75rem 1rem;
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
   }
 }
 
-/* --- Motion, ported from cafebinocle.com --- */
-
-@keyframes logo-rotate {
-  0% {
-    transform: rotate(0);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes floating {
-  0% {
-    transform: translate3d(0, 0, 0);
-  }
-  45% {
-    transform: translate3d(0, -10%, 0);
-  }
-  to {
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes marquee-scroll {
-  0% {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-/* Durations measured off cafebinocle.com: logo-rotate 30s linear,
-   floating 2s linear, both infinite. */
-.logo-rotate {
-  animation: logo-rotate 30s linear infinite;
-}
-
-.floating {
-  animation: floating 2s linear infinite;
-}
-
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee-scroll 26s linear infinite;
-}
+/* --- Motion --- */
 
 /* Initial states for the GSAP reveals live in CSS so nothing flashes before
    hydration; both fallbacks below guarantee content is never stuck hidden. */
@@ -324,12 +305,6 @@ h3 {
     transform: none !important;
   }
 
-  .logo-rotate,
-  .floating,
-  .marquee-track {
-    animation: none !important;
-  }
-
   *,
   *::before,
   *::after {
@@ -340,8 +315,6 @@ h3 {
 }
 
 @theme inline {
-  --font-heading: var(--font-sans);
-  --font-sans: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -454,9 +427,6 @@ h3 {
 @layer base {
   * {
     @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
   }
   html {
     @apply font-sans;

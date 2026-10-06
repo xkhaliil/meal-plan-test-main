@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Anton, Caprasimo, Space_Grotesk, Geist } from "next/font/google";
+import { Manrope, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import AuthHydrator from "@/app/components/AuthHydrator";
@@ -7,31 +7,19 @@ import PageTransition from "@/app/components/motion/PageTransition";
 import SmoothScroll from "@/app/components/motion/SmoothScroll";
 import Toaster from "@/app/components/Toaster";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
-
-// Caprasimo is the display face cafebinocle.com uses (it's on Google Fonts).
-// Its body face is Founders Grotesk, which is a commercial Klim licence, so
-// Space Grotesk stands in for it here rather than copying their font files.
-const caprasimo = Caprasimo({
+// The type pairing from faceiqlabs.com: Playfair Display for headlines,
+// Manrope for everything else. Both are open-source Google Fonts.
+const playfair = Playfair_Display({
   subsets: ["latin"],
-  variable: "--font-caprasimo",
+  variable: "--font-playfair",
   display: "swap",
-  weight: "400",
+  style: ["normal", "italic"],
 });
 
-const grotesk = Space_Grotesk({
+const manrope = Manrope({
   subsets: ["latin"],
-  variable: "--font-grotesk",
+  variable: "--font-manrope",
   display: "swap",
-});
-
-// Heavy condensed face for the oversized wordmark, which gets the wave
-// distortion applied on top (their wordmark uses a custom font, "Cimo").
-const anton = Anton({
-  subsets: ["latin"],
-  variable: "--font-anton",
-  display: "swap",
-  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -48,19 +36,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn(
-        "h-full",
-        caprasimo.variable,
-        grotesk.variable,
-        anton.variable,
-        "font-sans",
-        geist.variable
-      )}
+      className={cn("h-full", playfair.variable, manrope.variable)}
     >
       <head>
         <noscript>
           {/* Reveal animations start hidden; without JS they must still show. */}
-          <style>{`[data-reveal-item],[data-reveal-text]{opacity:1!important}`}</style>
+          <style>{`[data-reveal-item],[data-reveal-text]{opacity:1!important}.fruit-intro,.plate-stage{display:none!important}`}</style>
         </noscript>
       </head>
       {/* Extensions (ColorZilla, Grammarly and friends) add attributes to

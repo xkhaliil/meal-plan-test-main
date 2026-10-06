@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ConfirmDialog from "@/app/components/ConfirmDialog";
 import ProPrice from "@/app/components/ProPrice";
-import RotatingBadge from "@/app/components/RotatingBadge";
 import { requestJson } from "@/lib/apiClient";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { toast } from "@/lib/stores/toastStore";
@@ -29,10 +28,11 @@ interface Quota {
   remaining: number | null;
 }
 
+// The same list as the landing page's Pro plan.
 const PRO_FEATURES = [
+  "Everything in Free",
   "Unlimited Recipe Bot messages",
-  "AI-generated photos for every recipe",
-  "Everything in Free, with no daily cap",
+  "A generated photo for each recipe the bot writes",
 ];
 
 export default function SettingsPage() {
@@ -272,26 +272,31 @@ export default function SettingsPage() {
 
   return (
     <div className="pb-20">
-      <h1 className="sr-only">Settings</h1>
+      <section className="px-5 pb-8 pt-10 sm:px-8 sm:pt-14">
+        <div className="mx-auto max-w-5xl">
+          <p className="eyebrow">Your account</p>
+          <h1 className="mt-4 text-5xl tracking-tight sm:text-6xl">Settings</h1>
+        </div>
+      </section>
 
       {/* ---------- The member card ---------- */}
-      <section className="border-b-2 border-brown px-5 py-12 sm:px-[30px]">
+      <section className="px-5 pb-10 sm:px-8">
         <div className="mx-auto max-w-5xl">
-          <div className="card relative overflow-hidden p-6 shadow-[6px_6px_0_0_#594b3c] sm:p-8">
+          <div className="card relative overflow-hidden p-6 shadow-[0_12px_32px_-16px_rgba(24,24,27,0.18)] sm:p-8">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
-                <p className="text-[0.65rem] uppercase tracking-[0.25em] text-brown/50">
-                  Member card
-                </p>
+                <p className="eyebrow">Member card</p>
                 {profileSaved && (
-                  <span className="tag bg-green text-[0.6rem] text-white">
+                  <span className="tag bg-emerald-50 text-emerald-700">
                     Saved
                   </span>
                 )}
               </div>
               <span
-                className={`rotate-[-7deg] rounded-pill border-[3px] border-dashed px-4 py-1 font-display text-base uppercase tracking-[0.1em] ${
-                  isPro ? "border-green text-green" : "border-red text-red"
+                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                  isPro
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-zinc-100 text-zinc-600"
                 }`}
               >
                 {isPro ? "Pro" : "Free"}
@@ -299,19 +304,19 @@ export default function SettingsPage() {
             </div>
 
             <div className="mt-7 flex items-center gap-5">
-              <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 border-brown bg-yellow font-display text-3xl uppercase text-brown">
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-zinc-900 font-display text-2xl text-white">
                 {initial}
               </span>
               <div className="min-w-0 flex-1">
-                <h2 className="truncate font-display text-3xl uppercase leading-none text-brown sm:text-[40px]">
+                <h2 className="truncate text-3xl tracking-tight sm:text-4xl">
                   {user.name}
                 </h2>
-                <p className="mt-2 truncate text-brown/70">{user.email}</p>
+                <p className="mt-1.5 truncate text-zinc-400">{user.email}</p>
               </div>
 
               <button
                 onClick={startEditing}
-                className="tag h-9 shrink-0 px-4 transition-colors hover:bg-brown hover:text-yellow"
+                className="btn btn-secondary min-h-9 shrink-0 px-4 text-[13px]"
               >
                 Edit details
               </button>
@@ -325,10 +330,8 @@ export default function SettingsPage() {
             </div>
 
             {/* Today's allowance, punched like a loyalty card. */}
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t-2 border-dashed border-brown/35 pt-6">
-              <p className="text-[0.65rem] uppercase tracking-[0.25em] text-brown/50">
-                Today&apos;s pass
-              </p>
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-zinc-100 pt-6">
+              <p className="eyebrow">Today&apos;s pass</p>
               <DailyPass quota={quota} isPro={isPro} />
             </div>
           </div>
@@ -336,14 +339,14 @@ export default function SettingsPage() {
       </section>
 
       {editing && (
-        <section className="border-b-2 border-brown px-5 py-12 sm:px-[30px]">
+        <section className="px-5 pb-10 sm:px-8">
           <div className="mx-auto max-w-5xl">
             <form onSubmit={handleSaveProfile} className="card p-6 sm:p-8">
-              <div className="border-b-2 border-brown pb-5">
-                <h2 className="font-display text-3xl uppercase leading-none text-brown sm:text-[44px]">
+              <div className="border-b border-zinc-100 pb-5">
+                <h2 className="text-3xl tracking-tight sm:text-4xl">
                   Edit details
                 </h2>
-                <p className="mt-2 text-sm text-brown/70">
+                <p className="mt-2 text-sm text-zinc-400">
                   Your current password is only needed to change the address you
                   sign in with, or to set a new password.
                 </p>
@@ -409,7 +412,7 @@ export default function SettingsPage() {
                 <div>
                   <label className="label" htmlFor="account-new">
                     New password{" "}
-                    <span className="text-brown/55">(optional)</span>
+                    <span className="text-zinc-500">(optional)</span>
                   </label>
                   <input
                     id="account-new"
@@ -448,12 +451,12 @@ export default function SettingsPage() {
       )}
 
       {/* ---------- Plan ---------- */}
-      <section className="border-b-2 border-brown px-5 py-12 sm:px-[30px]">
+      <section className="px-5 py-10 sm:px-8">
         <div className="mx-auto max-w-5xl">
-          <h2 className="font-display text-[clamp(2rem,5vw,64px)] uppercase leading-[0.9] text-brown">
+          <h2 className="text-4xl tracking-tight sm:text-5xl">
             {isPro ? "You're on Pro" : "Go Pro"}
           </h2>
-          <p className="mt-4 max-w-[52ch] text-brown/70">
+          <p className="mt-4 max-w-[52ch] text-lg text-zinc-400">
             {isPro
               ? "Everything's unlocked. Cancel whenever you like — your recipes and plans stay put."
               : "The free plan covers a normal week. Pro takes the limits off."}
@@ -471,19 +474,19 @@ export default function SettingsPage() {
             {isPro ? (
               <div className="card flex flex-col p-6 sm:p-8">
                 <div className="flex items-baseline justify-between gap-4">
-                  <h3 className="font-display text-3xl uppercase leading-none text-green">
-                    Pro
-                  </h3>
-                  <span className="tag bg-green text-white">Active</span>
+                  <h3 className="text-3xl tracking-tight">Pro</h3>
+                  <span className="tag bg-emerald-50 text-emerald-700">
+                    Active
+                  </span>
                 </div>
-                <p className="mt-4 text-sm text-brown/70">
+                <p className="mt-4 text-sm text-zinc-400">
                   Everything below is switched on for this account.
                 </p>
                 <div className="mt-6">
                   <FeatureList features={PRO_FEATURES} />
                 </div>
 
-                <div className="mt-auto flex flex-wrap items-center gap-4 border-t-2 border-brown pt-6">
+                <div className="mt-auto flex flex-wrap items-center gap-4 border-t border-zinc-100 pt-6">
                   <button
                     type="button"
                     onClick={() => setConfirmingCancel(true)}
@@ -492,21 +495,19 @@ export default function SettingsPage() {
                   >
                     {busy ? "Working..." : "Cancel subscription"}
                   </button>
-                  <p className="text-xs text-brown/55">
+                  <p className="text-xs text-zinc-500">
                     You&apos;ll move to the free plan and keep every recipe
                     you&apos;ve saved.
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="card flex flex-col p-6 shadow-[6px_6px_0_0_#594b3c] sm:p-8">
+              <div className="card flex flex-col p-6 shadow-[0_12px_32px_-16px_rgba(24,24,27,0.18)] sm:p-8">
                 <div className="flex items-baseline justify-between gap-4">
-                  <h3 className="font-display text-3xl uppercase leading-none text-red">
-                    Pro
-                  </h3>
-                  <span className="tag bg-green text-white">Upgrade</span>
+                  <h3 className="text-3xl tracking-tight">Pro</h3>
+                  <span className="tag">Upgrade</span>
                 </div>
-                <p className="mt-4 text-sm text-brown/70">
+                <p className="mt-4 text-sm text-zinc-400">
                   For the weeks you cook properly.
                 </p>
                 <div className="mt-6">
@@ -516,11 +517,11 @@ export default function SettingsPage() {
                 <button
                   onClick={handleUpgrade}
                   disabled={busy}
-                  className="btn btn-primary mt-8 h-14 w-full text-base"
+                  className="btn btn-primary mt-8 h-12 w-full"
                 >
                   {busy ? "Starting checkout..." : "Upgrade to Pro"}
                 </button>
-                <ProPrice className="mt-3 block text-center text-xs text-brown/55" />
+                <ProPrice className="mt-3 block text-center text-xs text-zinc-500" />
               </div>
             )}
           </div>
@@ -528,15 +529,13 @@ export default function SettingsPage() {
       </section>
 
       {/* ---------- Danger zone ---------- */}
-      <section className="px-5 py-12 sm:px-[30px]">
+      <section className="px-5 py-10 sm:px-8">
         <div className="mx-auto max-w-5xl">
-          <div className="rounded-card border-[3px] border-dashed border-red bg-beige p-6 sm:p-8">
+          <div className="rounded-3xl border border-red-100 bg-red-50/40 p-6 sm:p-8">
             <div className="flex flex-wrap items-start justify-between gap-6">
               <div className="max-w-[52ch]">
-                <h2 className="font-display text-2xl uppercase leading-none text-red">
-                  Delete account
-                </h2>
-                <p className="mt-3 text-sm text-brown/70">
+                <h2 className="text-2xl tracking-tight">Delete account</h2>
+                <p className="mt-3 text-sm text-zinc-500">
                   Permanently removes your account, recipes, and meal plans.
                   This cannot be undone.
                 </p>
@@ -558,12 +557,12 @@ export default function SettingsPage() {
             {confirmingDelete && (
               <form
                 onSubmit={handleDeleteAccount}
-                className="mt-7 border-t-2 border-dashed border-red/45 pt-6"
+                className="mt-7 border-t border-red-100 pt-6"
               >
-                <p className="text-sm uppercase tracking-[0.15em] text-red">
+                <p className="text-sm font-medium text-red-700">
                   This deletes, permanently:
                 </p>
-                <ul className="mt-4 space-y-2 text-sm text-brown/80">
+                <ul className="mt-4 space-y-2 text-sm text-zinc-500">
                   <li>
                     {stats?.mine ?? "—"} recipes you created — including from
                     anyone else&apos;s meal plans
@@ -613,8 +612,11 @@ export default function SettingsPage() {
             )}
           </div>
 
-          <p className="mt-8 text-center text-xs uppercase tracking-[0.2em] text-brown/45">
-            <Link href="/recipes" className="transition-colors hover:text-red">
+          <p className="mt-8 text-center text-xs uppercase tracking-[0.2em] text-zinc-400">
+            <Link
+              href="/recipes"
+              className="transition-colors hover:text-zinc-900"
+            >
               Back to your catalog →
             </Link>
           </p>
@@ -662,14 +664,9 @@ function CardField({
 }) {
   return (
     <div className="flex items-baseline gap-3">
-      <span className="text-[0.65rem] uppercase tracking-[0.15em] text-brown/50">
-        {label}
-      </span>
-      <span
-        className="flex-1 border-b-2 border-dotted border-brown/25"
-        aria-hidden
-      />
-      <span className="font-display text-base uppercase text-brown">
+      <span className="text-sm text-zinc-400">{label}</span>
+      <span className="flex-1" aria-hidden />
+      <span className="text-sm font-medium tabular-nums text-zinc-900">
         {value ?? "—"}
       </span>
     </div>
@@ -680,19 +677,15 @@ function CardField({
 function DailyPass({ quota, isPro }: { quota: Quota | null; isPro: boolean }) {
   if (isPro || quota?.remaining === null) {
     return (
-      <span className="flex items-center gap-2 text-xs uppercase tracking-[0.15em] text-green">
-        <span className="h-2.5 w-2.5 rounded-full bg-green" aria-hidden />
+      <span className="flex items-center gap-2 text-sm font-medium text-emerald-700">
+        <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
         Unlimited Recipe Bot
       </span>
     );
   }
 
   if (!quota || quota.limit === null || quota.remaining === null) {
-    return (
-      <span className="text-xs uppercase tracking-[0.15em] text-brown/45">
-        —
-      </span>
-    );
+    return <span className="text-sm text-zinc-400">—</span>;
   }
 
   return (
@@ -701,15 +694,15 @@ function DailyPass({ quota, isPro }: { quota: Quota | null; isPro: boolean }) {
         {Array.from({ length: quota.limit }).map((_, i) => (
           <span
             key={i}
-            className={`h-3.5 w-3.5 rounded-full border-2 border-brown ${
-              i < quota.remaining! ? "bg-red" : "bg-transparent"
+            className={`h-3 w-3 rounded-full ${
+              i < quota.remaining! ? "bg-zinc-900" : "bg-zinc-200"
             }`}
           />
         ))}
       </span>
       <span
-        className={`text-xs uppercase tracking-[0.15em] ${
-          quota.remaining === 0 ? "text-red" : "text-brown/60"
+        className={`text-sm ${
+          quota.remaining === 0 ? "text-zinc-900" : "text-zinc-500"
         }`}
       >
         {quota.remaining} of {quota.limit} bot messages left
@@ -739,37 +732,34 @@ function Statement({
 
   return (
     <div className="card h-fit p-6">
-      <p className="text-center font-display text-xl uppercase leading-none text-brown">
+      <p className="text-center font-display text-2xl tracking-tight text-zinc-900">
         MealPlan Pro
       </p>
-      <p className="mt-2 text-center text-[0.6rem] uppercase tracking-[0.25em] text-brown/45">
+      <p className="mt-2 text-center text-[11px] uppercase tracking-[0.25em] text-zinc-400">
         Member statement
       </p>
 
-      <div className="my-5 border-t-2 border-dashed border-brown/35" />
+      <div className="my-5 border-t border-zinc-100" />
 
-      <dl className="space-y-2.5 font-mono text-[0.7rem] uppercase">
+      <dl className="space-y-3 text-sm">
         {rows.map(([label, value]) => (
           <div key={label} className="flex items-baseline gap-2">
-            <dt className="text-brown/55">{label}</dt>
-            <span
-              className="flex-1 border-b border-dotted border-brown/25"
-              aria-hidden
-            />
-            <dd className="text-brown">{value}</dd>
+            <dt className="text-zinc-500">{label}</dt>
+            <span className="flex-1" aria-hidden />
+            <dd className="font-medium text-zinc-900">{value}</dd>
           </div>
         ))}
       </dl>
 
-      <div className="my-5 border-t-2 border-dashed border-brown/35" />
+      <div className="my-5 border-t border-zinc-100" />
 
-      <div className="flex items-baseline justify-between font-display text-base uppercase text-brown">
+      <div className="flex items-baseline justify-between text-sm font-semibold text-zinc-900">
         <span>Due today</span>
-        <span className={isPro ? "text-green" : ""}>
+        <span className={isPro ? "text-emerald-700" : ""}>
           {isPro ? "Billed monthly" : "$0.00"}
         </span>
       </div>
-      <p className="mt-4 text-center text-[0.6rem] uppercase tracking-[0.2em] text-brown/40">
+      <p className="mt-4 text-center text-[11px] uppercase tracking-[0.2em] text-zinc-400">
         Thank you · Keep cooking
       </p>
     </div>
@@ -780,10 +770,13 @@ function FeatureList({ features }: { features: string[] }) {
   return (
     <ul className="space-y-3">
       {features.map((feature) => (
-        <li key={feature} className="flex items-start gap-3 text-sm text-brown">
+        <li
+          key={feature}
+          className="flex items-start gap-3 text-sm text-zinc-700"
+        >
           <span
             aria-hidden
-            className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-brown bg-green text-[0.6rem] text-white"
+            className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-[10px] text-white"
           >
             ✓
           </span>
@@ -797,17 +790,17 @@ function FeatureList({ features }: { features: string[] }) {
 function SettingsSkeleton() {
   return (
     <div className="pb-20" aria-hidden>
-      <section className="border-b-2 border-brown px-5 py-12 sm:px-[30px] sm:py-16">
+      <section className="px-5 pb-8 pt-10 sm:px-8 sm:pt-14">
         <div className="mx-auto max-w-5xl">
-          <div className="h-4 w-28 animate-pulse rounded-pill bg-brown/10" />
-          <div className="mt-5 h-20 w-72 animate-pulse rounded-card bg-brown/10" />
-          <div className="mt-6 h-5 w-96 max-w-full animate-pulse rounded-pill bg-brown/10" />
+          <div className="h-4 w-28 animate-pulse rounded-full bg-zinc-100" />
+          <div className="mt-5 h-20 w-72 animate-pulse rounded-3xl bg-zinc-100" />
+          <div className="mt-6 h-5 w-96 max-w-full animate-pulse rounded-full bg-zinc-100" />
         </div>
       </section>
-      <section className="px-5 py-12 sm:px-[30px]">
+      <section className="px-5 py-10 sm:px-8">
         <div className="mx-auto max-w-5xl space-y-6">
-          <div className="h-64 w-full animate-pulse rounded-card bg-brown/10" />
-          <div className="h-40 w-full animate-pulse rounded-card bg-brown/10" />
+          <div className="h-64 w-full animate-pulse rounded-3xl bg-zinc-100" />
+          <div className="h-40 w-full animate-pulse rounded-3xl bg-zinc-100" />
         </div>
       </section>
     </div>

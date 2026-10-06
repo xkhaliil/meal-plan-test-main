@@ -38,10 +38,10 @@ function planStatus(plan: MealPlan) {
   end.setHours(23, 59, 59, 999);
 
   if (end.getTime() < today.getTime())
-    return { label: "Finished", style: "bg-transparent text-brown/60" };
+    return { label: "Finished", style: "bg-zinc-100 text-zinc-500" };
   if (start.getTime() > today.getTime())
-    return { label: "Upcoming", style: "bg-sky text-brown" };
-  return { label: "This week", style: "bg-green text-white" };
+    return { label: "Upcoming", style: "bg-sky-50 text-sky-700" };
+  return { label: "This week", style: "bg-emerald-50 text-emerald-700" };
 }
 
 /**
@@ -207,11 +207,11 @@ export default function MealPlanDetailPage({
 
   if (loadFailed) {
     return (
-      <div className="px-5 py-24 text-center sm:px-[30px]">
-        <p className="font-display text-[clamp(2rem,6vw,64px)] uppercase leading-[0.95] text-brown">
+      <div className="px-5 py-24 text-center sm:px-8">
+        <p className="font-display text-4xl tracking-tight text-zinc-900">
           Plan unavailable
         </p>
-        <p className="mt-5 text-brown/70">
+        <p className="mt-4 text-zinc-400">
           This plan doesn&apos;t exist, or it belongs to another account.
         </p>
         <Link href="/meal-plans" className="btn btn-primary mt-8">
@@ -253,11 +253,11 @@ export default function MealPlanDetailPage({
   return (
     <div className="pb-20">
       {/* ---------- Masthead ---------- */}
-      <section className="border-b-2 border-brown px-5 py-10 sm:px-[30px] sm:py-14">
-        <div className="mx-auto max-w-7xl">
+      <section className="px-5 pb-8 pt-8 sm:px-8 sm:pt-10">
+        <div className="mx-auto max-w-6xl">
           <Link
             href="/meal-plans"
-            className="text-xs uppercase tracking-[0.2em] text-brown/55 transition-colors hover:text-red"
+            className="text-sm text-zinc-400 transition-colors hover:text-zinc-900"
           >
             ← All meal plans
           </Link>
@@ -265,10 +265,10 @@ export default function MealPlanDetailPage({
           <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <span className={`tag ${status.style}`}>{status.label}</span>
-              <h1 className="mt-4 font-display text-[clamp(2.5rem,8vw,104px)] uppercase leading-[0.88] break-words text-brown">
+              <h1 className="mt-4 break-words text-5xl tracking-tight sm:text-6xl">
                 {mealPlan.name}
               </h1>
-              <p className="mt-5 text-lg text-brown/80">
+              <p className="mt-4 text-lg text-zinc-400">
                 {new Date(mealPlan.startDate).toLocaleDateString(undefined, {
                   month: "long",
                   day: "numeric",
@@ -284,7 +284,7 @@ export default function MealPlanDetailPage({
               <div className="mt-6 flex flex-wrap gap-2">
                 <button
                   onClick={startEditing}
-                  className="tag h-9 px-4 transition-colors hover:bg-brown hover:text-yellow"
+                  className="btn btn-secondary min-h-9 px-4 text-[13px]"
                 >
                   Edit plan
                 </button>
@@ -293,31 +293,27 @@ export default function MealPlanDetailPage({
                     setPlanError("");
                     setConfirmingDeletePlan(true);
                   }}
-                  className="tag h-9 px-4 text-red transition-colors hover:border-red hover:bg-red hover:text-white"
+                  className="btn btn-danger min-h-9 px-4 text-[13px]"
                 >
                   Delete plan
                 </button>
               </div>
             </div>
 
-            <div className="flex shrink-0 items-end gap-8">
+            <div className="flex shrink-0 items-end gap-10">
               <div>
-                <p className="font-display text-[clamp(3rem,7vw,80px)] leading-[0.8] text-red">
+                <p className="font-display text-5xl leading-none tracking-tight text-zinc-900">
                   {filled.size}
-                  <span className="text-brown/35">/{TOTAL_SLOTS}</span>
+                  <span className="text-zinc-300">/{TOTAL_SLOTS}</span>
                 </p>
-                <p className="mt-3 text-xs uppercase tracking-[0.2em] text-brown/60">
-                  slots filled
-                </p>
+                <p className="eyebrow mt-2">slots filled</p>
               </div>
               {list.length > 0 && (
                 <div>
-                  <p className="font-display text-[clamp(3rem,7vw,80px)] leading-[0.8] text-brown">
+                  <p className="font-display text-5xl leading-none tracking-tight text-zinc-900">
                     {list.length}
                   </p>
-                  <p className="mt-3 text-xs uppercase tracking-[0.2em] text-brown/60">
-                    to buy
-                  </p>
+                  <p className="eyebrow mt-2">to buy</p>
                 </div>
               )}
             </div>
@@ -326,8 +322,8 @@ export default function MealPlanDetailPage({
       </section>
 
       {editing && (
-        <section className="border-b-2 border-brown px-5 py-8 sm:px-[30px]">
-          <div className="mx-auto max-w-7xl">
+        <section className="px-5 pb-8 sm:px-8">
+          <div className="mx-auto max-w-6xl">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -335,7 +331,7 @@ export default function MealPlanDetailPage({
               }}
               className="card p-6 sm:p-8"
             >
-              <h2 className="font-display text-2xl uppercase leading-none text-brown sm:text-3xl">
+              <h2 className="text-2xl tracking-tight sm:text-3xl">
                 Edit this plan
               </h2>
 
@@ -387,13 +383,13 @@ export default function MealPlanDetailPage({
                   />
                 </div>
 
-                <button type="submit" className="btn btn-primary h-12 px-7">
+                <button type="submit" className="btn btn-primary h-11 px-6">
                   Save changes
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditing(false)}
-                  className="btn btn-secondary h-12"
+                  className="btn btn-secondary h-11"
                 >
                   Cancel
                 </button>
@@ -404,8 +400,8 @@ export default function MealPlanDetailPage({
       )}
 
       {/* ---------- The picker, parked under the navbar ---------- */}
-      <section className="z-10 border-b-2 border-brown bg-yellow px-5 py-4 sm:px-[30px] md:sticky md:top-20">
-        <div className="mx-auto max-w-7xl">
+      <section className="z-10 px-5 sm:px-8 md:sticky md:top-[84px]">
+        <div className="mx-auto max-w-6xl rounded-3xl border border-zinc-200/70 bg-white/95 p-4 shadow-[0_10px_15px_-3px_rgba(228,228,231,0.3)] backdrop-blur-xl">
           <div className="flex flex-wrap items-end gap-3">
             <div>
               <label className="label" htmlFor="add-day">
@@ -464,7 +460,7 @@ export default function MealPlanDetailPage({
             <button
               onClick={handleAddRecipe}
               disabled={adding || !activeRecipeId}
-              className="btn btn-primary h-12 px-7"
+              className="btn btn-primary h-11 px-6"
             >
               {adding ? "Adding..." : "Add to plan"}
             </button>
@@ -475,15 +471,15 @@ export default function MealPlanDetailPage({
       </section>
 
       {/* ---------- The week ---------- */}
-      <section className="px-5 py-12 sm:px-[30px]">
-        <div className="mx-auto max-w-7xl">
+      <section className="px-5 py-10 sm:px-8">
+        <div className="mx-auto max-w-6xl">
           {/* Desktop: a timetable, meals down, days across. */}
           <div className="hidden xl:grid xl:grid-cols-[auto_repeat(7,minmax(0,1fr))] xl:gap-2.5">
             <span />
             {DAYS.map((day) => (
               <p
                 key={day}
-                className="border-b-2 border-brown/25 pb-2.5 text-center font-display text-sm uppercase tracking-[0.1em] text-brown"
+                className="pb-1 text-center text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400"
               >
                 {day.slice(0, 3)}
               </p>
@@ -491,7 +487,7 @@ export default function MealPlanDetailPage({
 
             {MEAL_TYPES.map((meal) => (
               <Fragment key={meal}>
-                <p className="flex items-center pr-4 font-display text-sm uppercase tracking-[0.1em] text-brown">
+                <p className="flex items-center pr-4 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">
                   {meal}
                 </p>
                 {DAYS.map((day) => (
@@ -518,13 +514,11 @@ export default function MealPlanDetailPage({
           >
             {DAYS.map((day) => (
               <div key={day} className="card p-5">
-                <h2 className="font-display text-xl uppercase text-brown">
-                  {day}
-                </h2>
+                <h2 className="text-2xl tracking-tight">{day}</h2>
                 <div className="mt-4 flex flex-col gap-4">
                   {MEAL_TYPES.map((meal) => (
                     <div key={meal}>
-                      <p className="mb-1.5 font-display text-xs uppercase tracking-[0.1em] text-brown">
+                      <p className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">
                         {meal}
                       </p>
                       <Slot
@@ -547,42 +541,41 @@ export default function MealPlanDetailPage({
 
       {/* ---------- Shopping list ---------- */}
       {list.length > 0 && (
-        <section
-          id="shopping-list"
-          className="border-t-2 border-brown px-5 py-12 sm:px-[30px]"
-        >
-          <div className="mx-auto max-w-7xl">
+        <section id="shopping-list" className="px-5 py-14 sm:px-8">
+          <div className="mx-auto max-w-6xl">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <h2 className="font-display text-[clamp(2rem,6vw,80px)] uppercase leading-[0.9] text-brown">
+                <h2 className="text-4xl tracking-tight sm:text-5xl">
                   Shopping list
                 </h2>
-                <p className="mt-4 max-w-[52ch] text-brown/70">
+                <p className="mt-4 max-w-[52ch] text-zinc-400">
                   Every ingredient from the {mealPlan.recipes.length} meals on
                   this plan, folded together by name.
                 </p>
               </div>
-              <p className="text-xs uppercase tracking-[0.2em] text-brown/55">
+              <p className="eyebrow">
                 {bought.size} of {list.length} ticked
                 {listPages > 1 &&
                   ` · ${listStart + 1}–${listStart + pageItemsToBuy.length}`}
               </p>
             </div>
 
-            <ul className="mt-8 grid gap-px overflow-hidden rounded-card border-2 border-brown bg-brown/20 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-8 grid gap-px overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-100 sm:grid-cols-2 lg:grid-cols-3">
               {pageItemsToBuy.map((item) => {
                 const done = bought.has(item.name);
                 return (
-                  <li key={item.name} className="bg-beige">
+                  <li key={item.name} className="bg-white">
                     <button
                       onClick={() => toggleBought(item.name)}
                       aria-pressed={done}
-                      className="flex w-full items-start gap-3 px-5 py-3.5 text-left transition-colors hover:bg-white"
+                      className="flex w-full items-start gap-3 px-5 py-3.5 text-left transition-colors hover:bg-zinc-50"
                     >
                       <span
                         aria-hidden
-                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-[6px] border-2 border-brown text-[0.6rem] ${
-                          done ? "bg-brown text-yellow" : "bg-white"
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-[6px] border text-[11px] ${
+                          done
+                            ? "border-zinc-900 bg-zinc-900 text-white"
+                            : "border-zinc-300 bg-white"
                         }`}
                       >
                         {done ? "✓" : ""}
@@ -590,13 +583,15 @@ export default function MealPlanDetailPage({
                       <span className="min-w-0">
                         <span
                           className={`block text-sm leading-tight ${
-                            done ? "text-brown/40 line-through" : "text-brown"
+                            done
+                              ? "text-zinc-400 line-through"
+                              : "text-zinc-900"
                           }`}
                         >
                           {item.name}
                         </span>
                         {item.amounts.length > 0 && (
-                          <span className="mt-1 block text-[0.7rem] uppercase tracking-wide text-brown/50">
+                          <span className="mt-1 block text-xs text-zinc-400">
                             {item.amounts.join(" · ")}
                           </span>
                         )}
@@ -648,7 +643,7 @@ export default function MealPlanDetailPage({
               meals scheduled on it will be removed. The recipes themselves stay
               in your catalog.
             </p>
-            {planError && <p className="mt-3 text-red">{planError}</p>}
+            {planError && <p className="mt-3 text-red-600">{planError}</p>}
           </>
         }
         onConfirm={deletePlan}
@@ -671,7 +666,7 @@ export default function MealPlanDetailPage({
               from {pendingRemove?.day} {pendingRemove?.mealType}. The recipe
               stays in your catalog.
             </p>
-            {removeError && <p className="mt-3 text-red">{removeError}</p>}
+            {removeError && <p className="mt-3 text-red-600">{removeError}</p>}
           </>
         }
         onConfirm={removeEntry}
@@ -701,10 +696,10 @@ function Slot({
       <button
         onClick={onPick}
         aria-label="Aim the picker at this slot"
-        className={`flex min-h-[72px] w-full items-center justify-center rounded-card border-2 border-dashed text-xl transition-colors ${
+        className={`flex min-h-[64px] w-full items-center justify-center rounded-2xl border border-dashed text-lg transition-colors ${
           aimed
-            ? "border-red bg-red/15 text-red"
-            : "border-brown/45 bg-white/55 text-brown/55 hover:border-brown hover:bg-white hover:text-red"
+            ? "border-zinc-900 bg-zinc-50 text-zinc-900"
+            : "border-zinc-200 text-zinc-300 hover:border-zinc-400 hover:text-zinc-900"
         }`}
       >
         +
@@ -719,18 +714,18 @@ function Slot({
         <div key={item.id} className="group relative isolate">
           <Link
             href={`/recipes/${item.recipe.id}`}
-            className="flex min-h-[72px] items-center gap-2.5 rounded-card border-2 border-brown bg-white p-2 transition-colors hover:bg-yellow"
+            className="flex min-h-[64px] items-center gap-2 rounded-2xl border border-zinc-200 bg-white p-2 shadow-[0_4px_12px_-8px_rgba(24,24,27,0.2)] transition-colors hover:border-zinc-300"
           >
-            <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-[10px] border-2 border-brown">
+            <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-zinc-100">
               <Image
                 src={item.recipe.imageUrl}
                 alt=""
                 fill
-                sizes="44px"
+                sizes="36px"
                 className="object-cover"
               />
             </span>
-            <span className="line-clamp-2 break-words pr-6 text-[0.8rem] font-medium leading-tight text-brown transition-colors group-hover:text-red">
+            <span className="line-clamp-2 min-w-0 pr-5 text-[13px] font-medium leading-tight text-zinc-800">
               {item.recipe.title}
             </span>
           </Link>
@@ -738,7 +733,7 @@ function Slot({
           <button
             onClick={() => onRemove(item)}
             aria-label={`Remove ${item.recipe.title} from this slot`}
-            className="absolute right-1.5 top-1/2 z-20 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 border-brown bg-beige text-xs leading-none text-brown/70 transition-colors hover:bg-red hover:text-white"
+            className="absolute right-1.5 top-1/2 z-20 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-white text-sm leading-none text-zinc-300 opacity-0 transition-all hover:bg-red-50 hover:text-red-600 focus-visible:opacity-100 group-hover:opacity-100"
           >
             ×
           </button>
@@ -751,19 +746,19 @@ function Slot({
 function PlanSkeleton() {
   return (
     <div className="pb-20" aria-hidden>
-      <section className="border-b-2 border-brown px-5 py-10 sm:px-[30px] sm:py-14">
-        <div className="mx-auto max-w-7xl">
-          <div className="h-4 w-32 animate-pulse rounded-pill bg-brown/10" />
-          <div className="mt-6 h-8 w-28 animate-pulse rounded-pill bg-brown/10" />
-          <div className="mt-4 h-20 w-96 max-w-full animate-pulse rounded-card bg-brown/10" />
+      <section className="px-5 pb-8 pt-8 sm:px-8 sm:pt-10">
+        <div className="mx-auto max-w-6xl">
+          <div className="h-4 w-32 animate-pulse rounded-full bg-zinc-100" />
+          <div className="mt-6 h-8 w-28 animate-pulse rounded-full bg-zinc-100" />
+          <div className="mt-4 h-20 w-96 max-w-full animate-pulse rounded-3xl bg-zinc-100" />
         </div>
       </section>
-      <section className="px-5 py-12 sm:px-[30px]">
-        <div className="mx-auto grid max-w-7xl gap-3 sm:grid-cols-2 lg:grid-cols-7">
+      <section className="px-5 py-10 sm:px-8">
+        <div className="mx-auto grid max-w-6xl gap-3 sm:grid-cols-2 lg:grid-cols-7">
           {Array.from({ length: 7 }).map((_, i) => (
             <div
               key={i}
-              className="h-56 animate-pulse rounded-card bg-brown/10"
+              className="h-56 animate-pulse rounded-3xl bg-zinc-100"
             />
           ))}
         </div>

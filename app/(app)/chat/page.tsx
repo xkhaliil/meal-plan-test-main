@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import ConfirmDialog from "@/app/components/ConfirmDialog";
-import CookIllustration from "@/app/components/CookIllustration";
 import RichText from "@/app/components/RichText";
 import { requestJson } from "@/lib/apiClient";
 import { useAuthStore } from "@/lib/stores/authStore";
@@ -230,21 +229,21 @@ export default function ChatPage() {
       {/* ---------- The chef: a rail on desktop, a strip on mobile ---------- */}
       <aside
         data-lenis-prevent
-        className="flex shrink-0 items-center gap-4 border-b-2 border-brown bg-yellow px-5 py-4 lg:w-[360px] lg:flex-col lg:items-stretch lg:gap-0 lg:overflow-y-auto lg:border-b-0 lg:border-r-2 lg:px-6 lg:py-9"
+        className="flex shrink-0 items-center gap-4 border-b border-zinc-100 bg-white px-5 py-4 lg:w-[340px] lg:flex-col lg:items-stretch lg:gap-0 lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-7 lg:py-9"
       >
         <Image
           src="/images/chef-badge.png"
           alt=""
           width={48}
           height={48}
-          className="h-12 w-12 shrink-0 rounded-full border-2 border-brown bg-beige object-contain p-1 lg:hidden"
+          className="h-11 w-11 shrink-0 rounded-full border border-zinc-200 bg-white object-contain p-1 lg:hidden"
         />
 
         <div className="min-w-0 flex-1 lg:flex-none">
-          <h1 className=" font-display text-xl uppercase leading-none text-brown lg:mt-2 lg:text-[40px]">
+          <h1 className="truncate text-[22px] tracking-tight lg:mt-2 lg:text-[40px]">
             {CHEF}
           </h1>
-          <p className="mt-3 hidden text-sm leading-relaxed text-brown/70 lg:block">
+          <p className="mt-3 hidden text-sm leading-relaxed text-zinc-400 lg:block">
             Writes complete recipes, ingredients, timings, a photo and files
             them in your catalog.
           </p>
@@ -258,7 +257,7 @@ export default function ChatPage() {
         {messages.length > 0 && (
           <button
             onClick={() => setConfirmingReset(true)}
-            className="tag ml-auto h-9 shrink-0 px-4 transition-colors hover:bg-brown hover:text-yellow lg:ml-0 lg:mt-6 lg:w-full lg:justify-center"
+            className="btn btn-secondary ml-auto min-h-9 shrink-0 px-4 text-[13px] lg:ml-0 lg:mt-6 lg:w-full"
           >
             New conversation
           </button>
@@ -266,7 +265,7 @@ export default function ChatPage() {
 
         <Link
           href="/recipes"
-          className="mt-auto hidden pt-8 text-xs uppercase tracking-[0.15em] text-brown/55 transition-colors hover:text-red lg:block"
+          className="mt-auto hidden pt-8 text-sm text-zinc-400 transition-colors hover:text-zinc-900 lg:block"
         >
           Your catalog →
         </Link>
@@ -301,7 +300,7 @@ export default function ChatPage() {
               {messages.map((msg, i) =>
                 msg.role === "user" ? (
                   <div key={msg.id ?? i} className="flex justify-end">
-                    <p className="max-w-[85%] whitespace-pre-wrap rounded-card rounded-tr-none border-2 border-brown bg-red px-5 py-3.5 leading-relaxed text-white">
+                    <p className="max-w-[85%] whitespace-pre-wrap rounded-3xl rounded-tr-md bg-zinc-900 px-5 py-3 text-[15px] leading-relaxed text-white">
                       {msg.content}
                     </p>
                   </div>
@@ -331,11 +330,11 @@ export default function ChatPage() {
                 <BotBubble name={null}>
                   <span className="flex items-center gap-2">
                     <span className="flex gap-1.5">
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-brown/40 [animation-delay:-0.3s]" />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-brown/40 [animation-delay:-0.15s]" />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-brown/40" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400" />
                     </span>
-                    <span className="text-xs uppercase tracking-[0.15em] text-brown/45">
+                    <span className="text-xs uppercase tracking-[0.15em] text-zinc-400">
                       Cooking
                     </span>
                   </span>
@@ -346,7 +345,7 @@ export default function ChatPage() {
                 <div className="pl-[58px]">
                   <button
                     onClick={retry}
-                    className="rounded-pill border-2 border-brown bg-beige px-5 py-2 text-xs uppercase tracking-wide text-brown transition-colors hover:bg-brown hover:text-yellow"
+                    className="btn btn-secondary min-h-9 px-4 text-[13px]"
                   >
                     Try again
                   </button>
@@ -362,7 +361,7 @@ export default function ChatPage() {
                 el?.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
                 setAtBottom(true);
               }}
-              className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-pill border-2 border-brown bg-beige px-4 py-2 text-xs uppercase tracking-wide text-brown shadow-[3px_3px_0_0_#594b3c] transition-colors hover:bg-brown hover:text-yellow"
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs uppercase tracking-wide text-zinc-900 shadow-[0_12px_32px_-16px_rgba(24,24,27,0.18)] transition-colors hover:bg-zinc-100 hover:text-zinc-900"
             >
               Latest ↓
             </button>
@@ -370,7 +369,7 @@ export default function ChatPage() {
         </div>
 
         {/* ---------- Composer ---------- */}
-        <div className="border-t-2 border-brown bg-yellow px-5 py-4 sm:px-8">
+        <div className="border-t border-zinc-100 bg-white/90 px-5 py-4 backdrop-blur-xl sm:px-8">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -400,7 +399,7 @@ export default function ChatPage() {
                     ? "You've used today's messages"
                     : `Ask ${CHEF} for an idea...`
                 }
-                className="input min-h-[52px] flex-1 resize-none py-3.5 disabled:opacity-60"
+                className="input min-h-12 flex-1 resize-none rounded-3xl px-5 py-3 disabled:opacity-60"
                 aria-label={`Message ${CHEF}`}
               />
 
@@ -409,7 +408,7 @@ export default function ChatPage() {
                   type="button"
                   onClick={() => abortRef.current?.abort()}
                   aria-label="Stop generating"
-                  className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full border-2 border-brown bg-beige text-brown transition-colors hover:bg-brown hover:text-yellow"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-900 transition-colors hover:border-zinc-300"
                 >
                   <span className="h-3 w-3 bg-current" aria-hidden />
                 </button>
@@ -418,21 +417,21 @@ export default function ChatPage() {
                   type="submit"
                   disabled={outOfMessages || !input.trim()}
                   aria-label="Send message"
-                  className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full border-2 border-brown bg-red text-xl text-white transition-colors hover:bg-brown hover:text-yellow disabled:opacity-35"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-lg text-white transition-colors enabled:hover:bg-zinc-700 disabled:opacity-25"
                 >
                   →
                 </button>
               )}
             </div>
 
-            <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.65rem] uppercase tracking-[0.15em] text-brown/45">
+            <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-xs text-zinc-400">
               <span className="hidden sm:inline">
                 Enter to send · Shift+Enter for a new line
               </span>
               {outOfMessages && (
                 <Link
                   href="/settings"
-                  className="text-red underline underline-offset-2"
+                  className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
                 >
                   Upgrade to Pro
                 </Link>
@@ -483,19 +482,19 @@ function BotBubble({
         alt=""
         width={44}
         height={44}
-        className="mt-1 h-11 w-11 shrink-0 rounded-full border-2 border-brown bg-beige object-contain p-1"
+        className="mt-1 h-9 w-9 shrink-0 rounded-full border border-zinc-200 bg-white object-contain p-1"
       />
       <div className="min-w-0 max-w-[88%]">
         {name && (
-          <p className="mb-1.5 text-[0.65rem] uppercase tracking-[0.2em] text-brown/50">
+          <p className="mb-1.5 text-[11px] uppercase tracking-[0.2em] text-zinc-400">
             {name}
           </p>
         )}
         <div
           className={
             error
-              ? "alert-error rounded-tl-none"
-              : "rounded-card rounded-tl-none border-2 border-brown bg-white px-5 py-4"
+              ? "alert-error rounded-3xl rounded-tl-md px-5 py-4"
+              : "rounded-3xl rounded-tl-md border border-zinc-200 bg-white px-5 py-4 text-[15px] shadow-[0_1px_2px_rgba(24,24,27,0.04)]"
           }
         >
           {children}
@@ -508,10 +507,10 @@ function BotBubble({
 
 function StatusPill({ cooking }: { cooking: boolean }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-pill border-2 border-brown bg-beige px-3 py-1 text-[0.6rem] uppercase tracking-[0.2em] text-brown">
+    <span className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-zinc-900">
       <span
         className={`h-2 w-2 rounded-full ${
-          cooking ? "animate-pulse bg-red" : "bg-green"
+          cooking ? "animate-pulse bg-zinc-900" : "bg-emerald-600"
         }`}
         aria-hidden
       />
@@ -526,7 +525,7 @@ function QuotaMeter({ quota }: { quota: Quota | null }) {
 
   if (quota.remaining === null || quota.limit === null) {
     return (
-      <span className="text-[0.6rem] uppercase tracking-[0.2em] text-green">
+      <span className="text-[11px] uppercase tracking-[0.2em] text-emerald-700">
         Pro · unlimited
       </span>
     );
@@ -538,15 +537,15 @@ function QuotaMeter({ quota }: { quota: Quota | null }) {
         {Array.from({ length: quota.limit }).map((_, i) => (
           <span
             key={i}
-            className={`h-2.5 w-2.5 rounded-full border-2 border-brown ${
-              i < quota.remaining! ? "bg-red" : "bg-transparent"
+            className={`h-2.5 w-2.5 rounded-full border border-zinc-200 ${
+              i < quota.remaining! ? "bg-zinc-900" : "bg-transparent"
             }`}
           />
         ))}
       </span>
       <span
-        className={`text-[0.6rem] uppercase tracking-[0.2em] ${
-          quota.remaining === 0 ? "text-red" : "text-brown/55"
+        className={`text-[11px] uppercase tracking-[0.2em] ${
+          quota.remaining === 0 ? "text-zinc-900" : "text-zinc-500"
         }`}
       >
         {quota.remaining} left today
@@ -563,11 +562,11 @@ function SpecialsMenu({
   disabled: boolean;
 }) {
   return (
-    <div className="rounded-card border-2 border-brown bg-beige p-5 shadow-[4px_4px_0_0_#594b3c]">
-      <p className="font-display text-lg uppercase leading-none text-brown">
+    <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-[0_12px_32px_-16px_rgba(24,24,27,0.18)]">
+      <p className="text-sm font-semibold text-zinc-900">
         Today&apos;s specials
       </p>
-      <p className="mt-1.5 text-[0.65rem] uppercase tracking-[0.2em] text-brown/45">
+      <p className="mt-1.5 text-[11px] uppercase tracking-[0.2em] text-zinc-400">
         Pick one to start
       </p>
 
@@ -577,15 +576,15 @@ function SpecialsMenu({
             key={special}
             onClick={() => onPick(special)}
             disabled={disabled}
-            className="group flex items-baseline gap-2.5 border-t-2 border-dotted border-brown/25 py-3 text-left disabled:opacity-40"
+            className="group flex items-baseline gap-2.5 border-t border-zinc-100 py-3 text-left disabled:opacity-40"
           >
-            <span className="font-display text-xs text-red">
+            <span className="text-xs tabular-nums text-zinc-300">
               {String(i + 1).padStart(2, "0")}
             </span>
-            <span className="text-sm leading-snug text-brown transition-colors group-hover:text-red">
+            <span className="text-sm leading-snug text-zinc-600 transition-colors group-hover:text-zinc-900">
               {special}
             </span>
-            <span className="ml-auto shrink-0 text-brown/35 transition-colors group-hover:text-red">
+            <span className="ml-auto shrink-0 text-zinc-300 transition-colors group-hover:text-zinc-900">
               →
             </span>
           </button>
@@ -608,16 +607,16 @@ function OrderTicket({ recipe }: { recipe: CreatedRecipe }) {
 
   return (
     <div className="relative mt-5">
-      <span className="absolute -top-2.5 left-4 z-10 rounded-pill border-2 border-brown bg-green px-3 py-0.5 text-[0.6rem] uppercase tracking-[0.2em] text-white">
+      <span className="absolute -top-2.5 left-4 z-10 rounded-full bg-emerald-600 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.15em] text-white">
         Order up
       </span>
 
       <Link
         href={`/recipes/${recipe.id}`}
-        className="group flex items-center gap-4 rounded-card border-2 border-brown bg-beige p-3 pt-4 shadow-[4px_4px_0_0_#594b3c] transition-colors hover:bg-white"
+        className="group flex items-center gap-4 rounded-3xl border border-zinc-200 bg-white p-3 pt-4 shadow-[0_12px_32px_-16px_rgba(24,24,27,0.18)] transition-colors hover:border-zinc-300"
       >
         {recipe.imageUrl && (
-          <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-card border-2 border-brown">
+          <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-zinc-100">
             <Image
               src={recipe.imageUrl}
               alt=""
@@ -629,15 +628,15 @@ function OrderTicket({ recipe }: { recipe: CreatedRecipe }) {
         )}
 
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-display text-lg uppercase leading-tight text-brown transition-colors group-hover:text-red">
+          <span className="block truncate text-[15px] font-semibold text-zinc-900">
             {recipe.title}
           </span>
-          <span className="mt-1 block text-[0.65rem] uppercase tracking-[0.15em] text-brown/60">
+          <span className="mt-1 block text-xs text-zinc-400">
             {meta || "Saved to your catalog"}
           </span>
         </span>
 
-        <span className="btn-circle h-10 w-10 shrink-0 text-sm transition-colors group-hover:bg-brown group-hover:text-yellow">
+        <span className="btn-circle h-9 w-9 shrink-0 text-sm transition-colors group-hover:border-zinc-900 group-hover:bg-zinc-900 group-hover:text-white">
           →
         </span>
       </Link>
@@ -649,11 +648,11 @@ function TranscriptSkeleton() {
   return (
     <div className="flex flex-col gap-7" aria-hidden>
       <div className="flex gap-3.5">
-        <div className="h-11 w-11 shrink-0 animate-pulse rounded-full bg-brown/10" />
-        <div className="h-24 w-full max-w-md animate-pulse rounded-card rounded-tl-none bg-brown/10" />
+        <div className="h-11 w-11 shrink-0 animate-pulse rounded-full bg-zinc-100" />
+        <div className="h-24 w-full max-w-md animate-pulse rounded-3xl rounded-tl-none bg-zinc-100" />
       </div>
       <div className="flex justify-end">
-        <div className="h-12 w-52 animate-pulse rounded-card rounded-tr-none bg-brown/10" />
+        <div className="h-12 w-52 animate-pulse rounded-3xl rounded-tr-none bg-zinc-100" />
       </div>
     </div>
   );

@@ -409,8 +409,7 @@ and 390px.
   `next.config.ts`. Every `next/image` renders the file as authored, so no
   transformations are billed and a remote `src` needs no `remotePatterns`
   allowlist. Verified on the rendered page: no `/_next/image?url=` anywhere.
-  `ChefLogo` keeps its own `unoptimized` prop as well — it is what stops the SVG
-  breaking if the global flag is ever turned back off.
+  `ChefLogo` is inline SVG now, so it no longer depends on this flag.
 - **`npm run build` is now `prisma generate && next build`.** Vercel can restore
   a cached `node_modules` without re-running `postinstall`, which leaves a stale
   Prisma client against a changed schema.
@@ -571,6 +570,258 @@ toast. Ten new tests — five on `requestJson`, five on the Toaster.
 Two things left deliberately alone: the chat send path already renders its
 failure as an assistant bubble, and `ProPrice` falls back to "Billed monthly
 through Stripe" by design.
+
+## Redesign after faceiqlabs.com
+
+The client asked for the design of faceiqlabs.com in place of the cafebinocle
+look. The _design language_ was adopted; the brand was not. MealPlan keeps its
+own name, logo, copy and food photography, and nothing on the page is a
+fabricated metric or review: faceiqlabs.com opens with "1,300,000+ users" and a
+wall of testimonials, and this app has neither to report. Those patterns are
+kept with true content instead — the proof row counts the seeded catalog
+(20), the planner's slots (21) and the bot (1); the italic serif set piece
+shows example prompts, labelled as examples.
+
+**What faceiqlabs.com is made of**, measured from the live page: Playfair
+Display (400, tracking about −2.5%) for headlines, Manrope for everything else,
+Tailwind's zinc scale and nothing else, a frosted pill nav (`white/80`,
+`blur(24px)`, hairline `zinc-200/60` border) floating 16px clear of the top, pill
+buttons in `zinc-900`, 24px-radius cards, soft blue-lavender washes behind the
+hero and the closing call to action, and one dark `zinc-950` band.
+
+**Foundation** — `app/layout.tsx` loads Playfair Display and Manrope through
+`next/font` (Caprasimo, Space Grotesk, Anton and Geist are gone).
+`app/globals.css` uses Tailwind's own `zinc-*` utilities rather than bespoke
+tokens; it defines `.btn-*`, `.card`, `.input`, `.label`, `.tag`, `.eyebrow`,
+and the `hero-wash`, `glass` and `dot-grid` utilities.
+
+One cascade bug found on the way: the `body` and `h1,h2,h3` defaults were
+unlayered, and an unlayered rule beats every layered utility regardless of
+specificity — so `font-sans` on a card title and `text-white` on a heading in
+the dark band both silently lost. They live in `@layer base` now.
+
+**Landing** — rebuilt in faceiqlabs.com's section order: floating nav
+(`app/components/landing/LandingNav.tsx`), centred serif hero with the product
+in a browser frame (`WeekMockup.tsx`, built in HTML rather than a screenshot so
+it stays sharp and can't go stale), image-backed pillar cards with big serif
+numerals, a hairline statement band, italic serif prompts, a numbered feature
+grid, how-it-works, pricing on the dark band, and a closing call to action. The
+morphing hero text is gone with the rest of the old look.
+
+**Everything else** — the app nav is the same frosted pill (`Navbar.tsx`,
+sticky so the chat's full-height column still works; links drop to a second row
+inside the pill on phones). Auth and checkout pages share `AuthShell`, now a
+centred column on the hero wash. Every signed-in page got a serif masthead,
+hairline cards, frosted filter bars and soft hovers in place of the old
+invert-to-brown.
+
+The bulk conversion was mechanical — a script mapped the old palette, 2px
+brown rules, card/pill radii and offset shadows onto zinc hairlines, and dropped
+uppercase from serif headings and buttons — followed by a hand pass on every
+page's masthead, chips, cards and error colours, checked in screenshots at
+1440px and 390px. A grep for the old tokens comes back empty.
+
+**Removed** as dead once the old look went: `Marquee`, `RotatingBadge`,
+`CookIllustration`, `WavyWordmark`, `LandingHeaderActions`, the
+`components/ui/morphing-text` component, the legacy colour tokens, and the
+`logo-rotate`/`floating`/`marquee` keyframes. Three of the standing lint
+warnings went with them.
+
+**Fixed along the way**
+
+- _Chat replies numbered every list item "1."_ Models put blank lines between
+  items, and a blank line closed the list, so each item became its own
+  one-item `<ol>`. Blank lines no longer end a list, and a list that resumes
+  keeps the model's numbering via `start`. Two component tests.
+- _The catalog's cuisine chips were clipped on the left_ — a centred flex row
+  that overflows can't scroll back to its start.
+- _Meal-plan slots broke titles mid-word_ ("Avocad / o Toast") in the
+  seven-column grid.
+- _The settings price E2E assumed its account was on the free plan._ It now
+  skips, with the reason, when bob is on Pro — which he is: the deployed site
+  and local development share the Neon database, and a test checkout on the
+  live site upgraded him.
+
+## Landing intro and hero after agrumeafarm.it
+
+The client asked for agrumeafarm.it's loading intro, exactly, and its hero with
+food in place of the jars. Both were studied frame by frame from the live site
+before building: a 120ms screenshot sequence through the intro, the loader's
+DOM over time, and the hero under hover and scroll.
+
+**The intro** (`app/components/landing/FruitIntro.tsx`) reproduces the
+choreography and timings measured from the original: a serif percentage counts
+0→100 over about 1.7s; flat fruit drop from above under real physics and pile
+up until they bury the screen; a dark panel rushes up from the bottom
+(expo-out, ~0.55s), covers everything, and lifts off the top (~0.7s) as the
+hero fades in underneath.
+
+- **Physics is matter-js**, as the original's tumbling (rotations up to ~75°
+  from collisions) is a rigid-body simulation, not a tween. Imported on demand
+  inside the intro only — an 83 KB chunk nothing else loads. If it takes
+  over 1.5s the intro runs without the fruit rather than waiting.
+- **The fruit are agrumeafarm.it's own loader artwork**, recoloured
+  (`fruits.ts`), at the client's request after a first version drawn for the
+  app didn't look like real fruit. All eleven drop twice, sized, placed and
+  simulated as on the original (its breakpoints, gravity, walls and fruit
+  material); each physics body is the convex hull of the original's collision
+  outline, aligned with the drawing through the hull's centroid. It is
+  another site's artwork, so the client should confirm they may use it
+  before this ships.
+- **The counter is Playfair Display with lining figures.** The original uses
+  IvyMode, a commercial Adobe font.
+- Plays once per full page load (module flag), never under reduced motion,
+  hidden by the root layout's `noscript` block, and it releases the scroll lock
+  as soon as the panel covers the screen _and_ on unmount.
+
+One bug worth recording: the panel's starting offset. Tailwind v4's
+`translate-y-full` sets the separate CSS `translate` property, which stacks on
+top of GSAP's `transform`; an inline `translateY(100%)` is no better, because
+GSAP reads it back as pixels and adds its own `yPercent` on top. Either way every
+panel position was a screen too low, so the hero was revealed before the panel
+covered anything. The panel is now parked with `top: 100%` and GSAP owns
+`transform` from zero.
+
+A second: the scroll lock hides the page's scrollbar, and the hero's pin was
+measured while it was hidden. Once the scrollbar came back, the pinned hero
+kept the scrollbar-less width (15px wider on Windows), so the dome sat 7.5px
+off-centre against its continuation below the hero. Releasing the lock now
+calls `ScrollTrigger.refresh()` while the panel still hides the page
+shifting, and the hero measures itself again on that refresh. Playwright
+hides scrollbars by default, so seeing this in a test takes
+`--hide-scrollbars` out of its default arguments.
+
+**The hero** (`PlateHero.tsx`) is agrumeafarm.it's jar slider rebuilt from
+its own source (`HomeHero`), constant for constant, after a first version that
+only imitated it. Plates stand in for the jars and a ring of text around each
+plate (dish, real prep-plus-cook time, cuisine) for the jar's label.
+
+- **Marquee.** The items ride an endless track tilted 10°. Spacing, item size
+  (1013:630 boxes) and track height follow the original's phone, tablet and
+  desktop breakpoints. Each item is spread out from the centre (`tanh`
+  warp), scaled from 0.55 to 1.35 and brightened toward the centre, and
+  blurred up to 4px (2px on phones) away from it. Each also gets a sine sway
+  of up to 18° and a fixed per-item rise.
+- **Motion.** The track eases toward its goal (rate 2.3, or 11 while dragged).
+  Speed adds lean, a slight squash, blur, and a turn of the label. Drag moves
+  it 1.5px per pixel, with a fling on release, and a drag never follows the
+  link. Each item has springs (stiffness about 70, damping 9) for turn, lean,
+  lift and pull toward the cursor, plus cursor parallax.
+- **Labels.** They do not spin on their own. Each turns once during the
+  entrance and once per hover, over 2s eased in and out, once the track has
+  settled (260ms dwell). The item carries `data-spin-elapsed` while it turns,
+  as on the original.
+- **Rings are canvases.** They were SVG `textPath` at first, and scrolling
+  the hero ran at about 18fps: Chrome lays SVG text out again whenever a
+  transform above it changes, which on a moving marquee is every plate, every
+  frame, and each scroll step then forced that layout. Painted once into
+  canvases (`paintCircleText`, same font, size, spacing and start point), they
+  are only rotated and scaled by the compositor. Measured on this machine's
+  GPU at 2× density while scrolling: 18fps before, 119fps after (the display's
+  120Hz), with layout down from about 2.3s to 9ms over the run. The original
+  draws its labels into canvases too. Canvases are painted at once in whatever
+  font is ready and again when the fonts load, and repainted if the browser
+  reclaims their GPU memory (`contextrestored`).
+- **Dome.** The client's back-slider shape, `max(750px, 80vw)` wide (120vw on
+  phones), its artwork 0.96 of that width, drifts with the cursor. Dome,
+  badge and items fade and rise in over 1.15s when the intro lifts. The prompt
+  fades up 180ms later. Breakpoints match the original's inclusive ones (480
+  is a phone, 1024 a tablet), which Tailwind's exclusive `max-*` had shifted
+  by a pixel, leaving a 1024px-wide screen with tablet-sized plates on the
+  desktop track.
+- **The badge's words sit below the plates.** On the original they run round
+  a circle behind the jars, in letters big enough to read between them. Our
+  plates with their text rings are far wider than jars and hid the words, so
+  they sit on a flatter arc in the free band between the centre plate's ring
+  and the "Scroll to discover" prompt, centred in it, up to 40px (18px
+  minimum). The arc's radius is 1.1 × the dome's width where the hero is tall
+  enough, flattening to as much as 8× where it is not, so the centred phrase
+  stays clear of the hero's bottom edge; words further along fade out 20px
+  above that edge instead of being cut by it. They move as the original's badge
+  does: they turn with the track at −0.012° per pixel (−0.03 on phones) and
+  from −18° on the way in, converted to how far the original badge's rim
+  travels, so they slide along the arc at the original's pace, opposite to the
+  plates. The arc is too large to paint once and rotate, so its visible strip
+  is redrawn on the frames it moves, by stamping letters pre-rendered into a
+  sheet: drawing rotated text afresh each frame cost a fifth of the frame
+  rate. The strip is clipped to the dome's outline.
+- **The one deliberate difference.** The original page has nothing below the
+  hero, so its wheel drives the track. Here the page continues, so the hero
+  is pinned for three screen heights and page scroll is fed to the track
+  exactly as the wheel is there (1.15px per pixel).
+- **Phones (≤480px) depart from the original**, at the client's request: its
+  phone layout left small plates floating in a tall, empty screen. Plates are
+  1.3× the original's phone size and packed closer, so one fills the middle
+  (the track starts with Pasta Carbonara centred) and its neighbours peek in;
+  they hang midway between the header and the dome, measured per screen; the
+  dome is 150vw wide instead of 120vw. And no pin: holding a thumb-scrolled
+  page reads as stuck, so the hero scrolls away normally and the plates turn
+  as it goes (`gsap.matchMedia` swaps the trigger at the breakpoint).
+
+Colours are the app's, not agrumeafarm.it's cream, orange and wine, at the
+client's request. The intro sits on `hero-wash` with a zinc-900 counter and
+panel, and its fruit use zinc tones plus the wash's blue-200 and violet-200 (as
+hex in `fruits.ts`, since those SVGs are built as strings). The hero sits on
+`hero-wash`, and the dome, header and call to action are zinc-900. The badge
+text is white and the rings zinc-500. The badge reads “Plan the week · cook
+what you love · shop once · eat well all week”, with “Plan the week · cook
+what you love” centred at rest.
+
+**Below the hero, the dome carries on as one shape.** The back-slider path is
+a whole polygon, 1411 × 1473 units, and the hero shows its top 601; PlateHero
+draws the rest from the same path at the same scale — a sliver tucked under
+the hero's edge, a straight run as tall as the content needs, and the
+polygon's own bottom — in a box as wide as the dome's and moved by the same
+transform, so both outlines snap to the same pixels and drift and sink
+together. It holds the three stats and the opening statement with its call
+to action (`children`), in white. Getting the join seamless took three fixes:
+the lower part first stood still while the dome drifted up to 14px with the
+cursor; then the two were rounded to pixels differently, leaving a one-pixel
+step; then the scrollbar bug above left it 7.5px off-centre.
+
+- The plates are 720px square crops generated into `public/images/plates`
+  (637 KB for eight). The catalog originals are 2560×1792 and image
+  optimisation is off, so using them directly meant downloading 28 MB.
+- **Two navbars, one set of buttons.** The hero keeps the original's own
+  header, the large mark centred between two buttons (a grid with equal
+  sides, so the mark stays on the centre line). Once the hero has scrolled
+  away a floating bar drops in: a frosted island of mark, sections and the
+  way in, with a pill that glides under the hovered section link and rests on
+  the section being read. Both use `NavButtons.tsx`: a frosted pill with an
+  icon ("Sign in", or "My recipes" when signed in) and a dark pill whose white
+  chip passes its arrow through on hover ("Start planning free", or "Open the
+  app"). On a phone the labels shorten to "Sign up" and "Open app". A merged
+  single bar was tried and dropped at the client's request — the large
+  centred mark is part of the hero.
+- The previous FaceIQ hero was kept, not deleted: its headline and call to
+  action are the statement on the dome below the hero, and its planner mockup
+  is the white section after that.
+- **Below the planner, the page is two sections**, at the client's request.
+  Three cards each show a slice of the app built in HTML like the planner
+  (`FeaturePeeks.tsx`: recipe search, the shopping list, Chef Ferraro), with
+  the seeded catalog's content — the list is a real stretch of what the
+  planner's week produces. Then the two plans over `hero-wash`. The catalog
+  cards, pillars, statement band, prompt set piece, feature grid, three steps
+  and closing call to action went: they restated the same four features
+  four times, and the page was 14,000px tall on a phone (now 7,500). The Pro
+  list now reads "a generated photo for each recipe the bot writes", here and
+  in settings — only those recipes get one.
+- **On a phone** the planner is shown the way a phone would show it
+  (`PhoneWeek` in `WeekMockup.tsx`): a strip of the week with a dot for each
+  planned meal, then one day's meals as cards, with an empty slot to tap. Seven
+  columns of truncated names couldn't be read at that width. The browser
+  frame starts at `md`, where names take two lines until `lg`. The dome's stats
+  go one to a line, its words fade at the screen's edges instead of being cut
+  there, and the hero header's buttons are 40px tall, a comfortable tap.
+- **The logo is the client's chef mark** (`ChefLogo`), inline SVG in
+  `currentColor`, so it takes the app's zinc-900. The browser icons are drawn
+  from the same paths: `app/icon.svg` (the mark in white on a zinc-900 tile),
+  `app/apple-icon.png` and `app/favicon.ico`. The chat avatar
+  (`/images/chef-badge.png`) is still the earlier artwork.
+
+Five Playwright specs in `tests/e2e/intro.spec.ts` cover it: the intro covers
+then clears and unlocks scrolling, clicks work afterwards, a reload replays it,
+client-side navigation back does not, and reduced motion skips it.
 
 ## Documented follow-ups (not implemented)
 

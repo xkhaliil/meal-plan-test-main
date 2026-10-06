@@ -70,6 +70,16 @@ test.describe("signed in", () => {
     expect(price.amount).toBeGreaterThan(0);
 
     await page.goto("/settings");
+    await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+
+    // The price lives on the upgrade card, which a Pro account doesn't see.
+    // These specs run against whatever database the dev server points at, and
+    // a test checkout made through the deployed site can leave bob on Pro.
+    const alreadyPro = await page
+      .getByRole("heading", { name: /you're on pro/i })
+      .isVisible();
+    test.skip(alreadyPro, "The signed-in account is already on Pro");
+
     // Proves the whole chain: the route reaches Stripe, converts minor units,
     // and the component renders it. A hardcoded number would pass a unit test
     // and still be wrong here.

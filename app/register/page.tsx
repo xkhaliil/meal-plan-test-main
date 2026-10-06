@@ -103,157 +103,131 @@ export default function RegisterPage() {
 
   return (
     <AuthShell
-      eyebrow="Create an account"
-      statement="Decide what's for dinner once a week."
-      blurb="Free to start, no card required. Bring your recipes, build the week around them, and let the shopping list write itself."
-      points={[
-        "Keep every recipe in one searchable catalog",
-        "Plan seven days across breakfast, lunch and dinner",
-        "Five Recipe Bot messages a day on the free plan",
-      ]}
+      points={["Free to start", "No card required", "Cancel Pro anytime"]}
     >
-      <Reveal y={18}>
-        <p
-          data-reveal-item
-          className="flex items-center gap-3 text-[0.65rem] uppercase tracking-[0.3em] text-brown/50"
-        >
-          Get started
-          <span className="h-px w-12 bg-brown/25" aria-hidden />
-        </p>
+      <Reveal y={14}>
+        <div data-reveal-item className="text-center">
+          <h1 className="text-[40px] leading-[1.05] tracking-[-0.03em] sm:text-[44px]">
+            Create your account
+          </h1>
+          <p className="mt-3 text-[15px] text-zinc-500">
+            Decide what&apos;s for dinner once a week.
+          </p>
+        </div>
 
-        <h1
-          data-reveal-item
-          className="mt-4 font-display text-[clamp(2rem,6.5vw,3rem)] uppercase leading-[0.95] text-brown"
-        >
-          Create your account
-        </h1>
-
-        <p
-          data-reveal-item
-          className="mt-3 text-[0.95rem] leading-relaxed text-brown/70"
-        >
-          Free to start — no card required.
-        </p>
-
-        {/* No data-reveal-item here: this mounts after the reveal has run, and
-            anything marked for it that arrives late stays at opacity 0. */}
-        {error && (
-          <div
-            role="alert"
-            className="alert-error mt-6 animate-in fade-in slide-in-from-top-1 duration-200"
-          >
-            {error}
-          </div>
-        )}
-
-        {phase === "created" && (
-          <div
-            role="status"
-            className="mt-6 flex items-center gap-3 rounded-card border-2 border-green bg-green/10 px-4 py-3 text-[0.9375rem] text-brown animate-in fade-in slide-in-from-top-1 duration-200"
-          >
-            <span
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-brown bg-green text-xs text-beige"
-              aria-hidden
+        <div data-reveal-item className="card mt-8 p-6 sm:p-8">
+          {/* Mounted after the reveal has run; deliberately not marked for it,
+              or it would arrive at opacity 0 and stay there. */}
+          {error && (
+            <div
+              role="alert"
+              className="alert-error mb-5 animate-in fade-in slide-in-from-top-1 duration-200"
             >
-              ✓
-            </span>
-            Account created — setting up your kitchen…
-          </div>
-        )}
+              {error}
+            </div>
+          )}
 
-        <form
-          data-reveal-item
-          onSubmit={handleSubmit}
-          noValidate
-          className="mt-7 space-y-5"
-        >
-          <AuthField
-            label="Full name"
-            autoComplete="name"
-            value={name}
-            onChange={setName}
-            placeholder="Alice Johnson"
-            required
-          />
-
-          <AuthField
-            label="Email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={setEmail}
-            placeholder="you@example.com"
-            required
-          />
-
-          <AuthField
-            label="Password"
-            type="password"
-            autoComplete="new-password"
-            value={password}
-            onChange={setPassword}
-            placeholder="••••••••"
-            required
-            invalid={tooShort}
-            // Once it clears the rule the meter says everything; repeating
-            // the rule under a valid password is just noise.
-            hint={
-              tooShort
-                ? "A few more — " + MIN_PASSWORD + " characters minimum."
-                : password.length === 0
-                  ? "At least " + MIN_PASSWORD + " characters."
-                  : undefined
-            }
-            footer={
-              password.length > 0 && <StrengthMeter password={password} />
-            }
-          />
-
-          <AuthField
-            label="Confirm password"
-            type="password"
-            autoComplete="new-password"
-            value={confirmPassword}
-            onChange={setConfirmPassword}
-            placeholder="••••••••"
-            required
-            invalid={mismatch}
-            hint={
-              mismatch
-                ? "Those two don't match yet."
-                : confirmPassword.length > 0
-                  ? "Passwords match."
-                  : undefined
-            }
-          />
-
-          <button
-            type="submit"
-            disabled={busy}
-            className="btn btn-primary group h-14 w-full text-[0.9rem] uppercase tracking-[0.15em]"
-          >
-            {phase === "sending"
-              ? "Creating account…"
-              : phase === "created"
-                ? "One moment…"
-                : "Create account"}
-            <span
-              aria-hidden
-              className="transition-transform duration-300 group-hover:translate-x-1"
+          {phase === "created" && (
+            <div
+              role="status"
+              className="mb-5 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 animate-in fade-in slide-in-from-top-1 duration-200"
             >
-              →
-            </span>
-          </button>
-        </form>
+              <span
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] text-white"
+                aria-hidden
+              >
+                ✓
+              </span>
+              Account created — setting up your kitchen…
+            </div>
+          )}
 
-        <p
-          data-reveal-item
-          className="mt-7 border-t-2 border-brown/15 pt-6 text-sm text-brown/70"
-        >
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+            <AuthField
+              label="Full name"
+              autoComplete="name"
+              value={name}
+              onChange={setName}
+              placeholder="Alice Johnson"
+              required
+            />
+
+            <AuthField
+              label="Email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={setEmail}
+              placeholder="you@example.com"
+              required
+            />
+
+            <AuthField
+              label="Password"
+              type="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={setPassword}
+              placeholder="••••••••"
+              required
+              invalid={tooShort}
+              // Once it clears the rule the meter says everything; repeating
+              // the rule under a valid password is just noise.
+              hint={
+                tooShort
+                  ? "A few more — " + MIN_PASSWORD + " characters minimum."
+                  : password.length === 0
+                    ? "At least " + MIN_PASSWORD + " characters."
+                    : undefined
+              }
+              footer={
+                password.length > 0 && <StrengthMeter password={password} />
+              }
+            />
+
+            <AuthField
+              label="Confirm password"
+              type="password"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              placeholder="••••••••"
+              required
+              invalid={mismatch}
+              hint={
+                mismatch
+                  ? "Those two don't match yet."
+                  : confirmPassword.length > 0
+                    ? "Passwords match."
+                    : undefined
+              }
+            />
+
+            <button
+              type="submit"
+              disabled={busy}
+              className="btn btn-primary group !mt-6 h-11 w-full"
+            >
+              {phase === "sending"
+                ? "Creating account…"
+                : phase === "created"
+                  ? "One moment…"
+                  : "Create account"}
+              <span
+                aria-hidden
+                className="transition-transform duration-300 group-hover:translate-x-0.5"
+              >
+                →
+              </span>
+            </button>
+          </form>
+        </div>
+
+        <p data-reveal-item className="mt-6 text-center text-sm text-zinc-500">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-medium text-red underline decoration-2 underline-offset-4 transition-colors hover:text-brown"
+            className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-4 transition-colors hover:decoration-zinc-900"
           >
             Sign in
           </Link>
@@ -263,29 +237,27 @@ export default function RegisterPage() {
   );
 }
 
-/** Four pips and a word — the same pip idiom the chat page uses for quota. */
+/** Four bars and a word. */
 function StrengthMeter({ password }: { password: string }) {
   const score = strengthOf(password);
   const fill =
-    score >= 4 ? "bg-green" : score >= 2 ? "bg-brown" : "bg-red border-red";
+    score >= 4 ? "bg-emerald-500" : score >= 2 ? "bg-zinc-900" : "bg-red-500";
 
   return (
-    <div className="mt-3 flex items-center gap-3 px-1.5">
+    <div className="mt-2.5 flex items-center gap-3">
       <span className="flex flex-1 gap-1.5" aria-hidden>
         {[0, 1, 2, 3].map((i) => (
           <span
             key={i}
             className={cn(
-              "h-1.5 flex-1 rounded-pill border border-brown/35",
-              i < score ? fill : "bg-transparent"
+              "h-1 flex-1 rounded-full",
+              i < score ? fill : "bg-zinc-100"
             )}
           />
         ))}
       </span>
 
-      <span className="text-[0.6rem] uppercase tracking-[0.15em] text-brown/60">
-        {STRENGTH_LABELS[score]}
-      </span>
+      <span className="text-xs text-zinc-500">{STRENGTH_LABELS[score]}</span>
       <span className="sr-only" aria-live="polite">
         Password strength: {STRENGTH_LABELS[score]}
       </span>

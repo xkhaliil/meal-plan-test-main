@@ -13,10 +13,13 @@ export default function AuthCta({
   signedOut,
   signedIn,
   className = "",
+  trailing,
 }: {
   signedOut: Target;
   signedIn: Target;
   className?: string;
+  /** Rendered after the label — an arrow on the larger calls to action. */
+  trailing?: React.ReactNode;
 }) {
   const user = useAuthUser();
   const target = user ? signedIn : signedOut;
@@ -24,6 +27,7 @@ export default function AuthCta({
   return (
     <Link href={target.href} className={className}>
       {target.label}
+      {trailing}
     </Link>
   );
 }

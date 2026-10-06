@@ -26,6 +26,30 @@ describe("RichText", () => {
     expect(screen.getAllByRole("listitem")).toHaveLength(2);
   });
 
+  it("keeps one list when the model leaves blank lines between items", () => {
+    // How models actually write lists. Each blank line used to close the
+    // list, so every item rendered as its own list, numbered "1.".
+    const { container } = render(
+      <RichText
+        content={
+          "Options:\n\n1. Salmon\n\n2. Tacos\n\n3. Stir fry\n\nWhich one?"
+        }
+      />
+    );
+    expect(container.querySelectorAll("ol")).toHaveLength(1);
+    expect(screen.getAllByRole("listitem")).toHaveLength(3);
+    expect(screen.getByText("Which one?").tagName).toBe("P");
+  });
+
+  it("continues the model's numbering when a list resumes", () => {
+    const { container } = render(
+      <RichText content={"1. Prep\n2. Sear\nThen rest it.\n3. Slice"} />
+    );
+    const lists = container.querySelectorAll("ol");
+    expect(lists).toHaveLength(2);
+    expect(lists[1].getAttribute("start")).toBe("3");
+  });
+
   it("starts a new list when the kind changes", () => {
     const { container } = render(
       <RichText content={"- Bullet\n1. Numbered"} />

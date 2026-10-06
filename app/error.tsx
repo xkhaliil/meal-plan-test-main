@@ -28,22 +28,20 @@ export default function Error({
 
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center px-5 py-20 text-center">
-      <p className="text-xs uppercase tracking-[0.2em] text-brown/55">
-        Something went wrong
-      </p>
-      <h1 className="mt-4 font-display text-[clamp(2rem,6vw,64px)] uppercase leading-[0.95] text-brown">
+      <p className="eyebrow">Something went wrong</p>
+      <h1 className="mt-4 text-4xl tracking-tight sm:text-5xl">
         That didn&apos;t cook
       </h1>
-      <p className="mt-5 max-w-[46ch] text-brown/70">
+      <p className="mt-5 max-w-[46ch] text-lg text-zinc-400">
         The page hit an error on its way to you. Trying again often clears it.
       </p>
       {error.digest && (
-        <p className="mt-3 font-mono text-xs text-brown/45">
+        <p className="mt-3 font-mono text-xs text-zinc-300">
           Reference: {error.digest}
         </p>
       )}
 
-      <div className="mt-8 flex flex-wrap justify-center gap-3">
+      <div className="mt-10 flex flex-wrap justify-center gap-3">
         {retry && (
           <button onClick={() => retry()} className="btn btn-primary">
             Try again

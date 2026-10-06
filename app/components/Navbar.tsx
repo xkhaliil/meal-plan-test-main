@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import UserMenu from "@/app/components/UserMenu";
+import Wordmark from "@/app/components/Wordmark";
+import { cn } from "@/lib/utils";
 
 // Settings and Log out live in the avatar menu on the right.
 const LINKS = [
@@ -11,6 +13,15 @@ const LINKS = [
   { href: "/chat", label: "Chef Ferraro" },
 ];
 
+/**
+ * The floating pill nav from faceiqlabs.com: frosted white, hairline border,
+ * a soft zinc shadow, sitting 16px clear of the top edge.
+ *
+ * Sticky rather than fixed, so it still takes up its own height in the flow —
+ * the chat page is a full-height column and relies on that rather than on a
+ * hard-coded offset. On a phone the links drop to a second row inside the
+ * same pill instead of hiding behind a menu: there are only three of them.
+ */
 export default function Navbar() {
   const pathname = usePathname();
 
@@ -21,11 +32,12 @@ export default function Navbar() {
         key={link.href}
         href={link.href}
         aria-current={active ? "page" : undefined}
-        className={`shrink-0 rounded-pill border-2 px-4 py-2 text-sm uppercase tracking-wide transition-colors ${
+        className={cn(
+          "shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
           active
-            ? "border-brown bg-brown text-yellow"
-            : "border-transparent text-brown hover:border-brown"
-        }`}
+            ? "bg-zinc-100 text-zinc-900"
+            : "text-zinc-500 hover:text-zinc-900"
+        )}
       >
         {link.label}
       </Link>
@@ -33,22 +45,21 @@ export default function Navbar() {
   });
 
   return (
-    <header className="sticky top-0 z-20 border-b-2 border-brown bg-yellow">
-      <nav className="mx-auto max-w-7xl px-5 sm:px-8">
-        <div className="flex h-20 items-center justify-between gap-4">
-          <Link href="/recipes" className="flex shrink-0 items-center gap-3">
-            <span className="whitespace-nowrap font-display text-xl uppercase leading-none text-brown sm:text-2xl">
-              MealPlan
-            </span>
-          </Link>
+    <header className="sticky top-0 z-30 px-4 pt-4 sm:px-6">
+      <nav
+        aria-label="Main"
+        className="glass mx-auto max-w-6xl rounded-[28px] border border-zinc-200/60 shadow-[0_10px_15px_-3px_rgba(228,228,231,0.3),0_4px_6px_-4px_rgba(228,228,231,0.3)] md:rounded-full"
+      >
+        <div className="flex h-14 items-center justify-between gap-4 pl-5 pr-2.5">
+          <Wordmark href="/recipes" />
 
-          <div className="flex items-center gap-2">
-            <div className="hidden items-center gap-2 md:flex">{navLinks}</div>
+          <div className="flex items-center gap-1">
+            <div className="hidden items-center gap-1 md:flex">{navLinks}</div>
             <UserMenu />
           </div>
         </div>
 
-        <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto pb-3 md:hidden">
+        <div className="no-scrollbar flex gap-1 overflow-x-auto border-t border-zinc-200/60 px-2.5 py-2 md:hidden">
           {navLinks}
         </div>
       </nav>

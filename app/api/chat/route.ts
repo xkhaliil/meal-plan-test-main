@@ -319,8 +319,9 @@ export async function POST(req: NextRequest) {
 
         assistantReply = `I've created "${createdRecipe.title}" and added it to your recipe catalog!`;
 
-        // "AI-generated photos for every recipe" is sold as a Pro feature, and
-        // each call costs money — so free accounts keep the placeholder.
+        // "A generated photo for each recipe the bot writes" is sold as a Pro
+        // feature, and each call costs money — so free accounts keep the
+        // placeholder.
         if (user.plan === "pro") {
           const imagePromptRaw = args.imagePrompt ?? args.image_prompt;
           const imagePrompt =

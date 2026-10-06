@@ -7,7 +7,7 @@ import { Fragment, type ReactNode } from "react";
  */
 const BOLD = /(\*\*[^*]+\*\*)/g;
 const BULLET = /^\s*[-*•]\s+(.*)$/;
-const NUMBERED = /^\s*\d+[.)]\s+(.*)$/;
+const NUMBERED = /^\s*(\d+)[.)]\s+(.*)$/;
 const HEADING = /^\s*#{1,4}\s+(.*)$/;
 
 function inline(text: string): ReactNode[] {
@@ -26,6 +26,8 @@ export default function RichText({ content }: { content: string }) {
   const blocks: ReactNode[] = [];
   let items: string[] = [];
   let ordered = false;
+  /** The number the model gave the list's first item. */
+  let start = 1;
 
   function flushList() {
     if (items.length === 0) return;
@@ -33,11 +35,18 @@ export default function RichText({ content }: { content: string }) {
     const rendered = items.map((item, i) => <li key={i}>{inline(item)}</li>);
     blocks.push(
       ordered ? (
-        <ol key={blocks.length} className="ml-5 list-decimal space-y-1">
+        <ol
+          key={blocks.length}
+          start={start}
+          className="ml-5 list-decimal space-y-1.5 marker:text-zinc-400"
+        >
           {rendered}
         </ol>
       ) : (
-        <ul key={blocks.length} className="ml-5 list-disc space-y-1">
+        <ul
+          key={blocks.length}
+          className="ml-5 list-disc space-y-1.5 marker:text-zinc-300"
+        >
           {rendered}
         </ul>
       )
@@ -53,10 +62,16 @@ export default function RichText({ content }: { content: string }) {
       const nextOrdered = numbered !== null;
       // A list that switches kind mid-run is two lists.
       if (items.length > 0 && nextOrdered !== ordered) flushList();
+      if (items.length === 0) start = numbered ? Number(numbered[1]) : 1;
       ordered = nextOrdered;
-      items.push((bullet ?? numbered)![1]);
+      items.push(bullet ? bullet[1] : numbered![2]);
       continue;
     }
+
+    // Models put blank lines between list items. Ending the list there made
+    // every item its own one-item <ol>, so each one was numbered "1.". Only a
+    // line of real text ends a list.
+    if (!line.trim()) continue;
 
     flushList();
 
@@ -65,12 +80,12 @@ export default function RichText({ content }: { content: string }) {
       blocks.push(
         <p
           key={blocks.length}
-          className="font-display text-base uppercase leading-tight"
+          className="pt-1 text-[15px] font-semibold leading-tight text-zinc-900"
         >
           {inline(heading[1])}
         </p>
       );
-    } else if (line.trim()) {
+    } else {
       blocks.push(<p key={blocks.length}>{inline(line)}</p>);
     }
   }
