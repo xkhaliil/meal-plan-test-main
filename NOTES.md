@@ -823,6 +823,37 @@ Five Playwright specs in `tests/e2e/intro.spec.ts` cover it: the intro covers
 then clears and unlocks scrolling, clicks work afterwards, a reload replays it,
 client-side navigation back does not, and reduced motion skips it.
 
+## Signing in: stuck on "opening your kitchen", and the fruit way in
+
+**The bug.** In production, signing in after visiting the landing page left
+the visitor on the login page under "Signed in — opening your kitchen…". The
+landing page links into the app (its footer's "Recipes"), and a production
+build prefetches those links. Signed out, the proxy answered the prefetch with
+a redirect to `/login`, and the client router kept that answer; after sign-in
+`router.push("/recipes")` replayed it and landed on `/login?next=/recipes`, the
+same page with its state intact. Straight to `/login` it worked, and the dev
+server doesn't prefetch, so the tests never saw it.
+
+Telling prefetches apart in the proxy doesn't work: Next 16 strips
+`next-router-prefetch` and the other Flight headers from the request the proxy
+sees. `router.refresh()` only clears the current route's cache, and
+`revalidatePath` from a Server Action would regenerate every static page on
+each sign-in.
+
+**The fix**, which is also what was asked for: sign-in and sign-up hand over to
+`FruitTransition` (root layout), which plays the landing intro without its
+count — the screen washes over, the fruit drop and fill it, the dark panel
+rushes up — and then opens the app with a **full page load**, judged by the
+proxy on the new cookie. Browsers keep the last frame, the panel, until the
+new page paints; that page starts under an identical panel (a head script
+reads a session-storage flag before the first paint, `lib/arrival.ts`), which
+is then lifted. Reduced motion skips straight to the page load. The fruit and
+their physics are shared with the intro (`fruitPile.ts`), and matter-js is
+fetched on the login and register pages ahead of time.
+
+`tests/e2e/guard.spec.ts` now signs in after the landing page; in CI's
+production build that is the path that used to hang.
+
 ## Documented follow-ups (not implemented)
 
 - **`mushroom-risotto.jpg` still shows the wrong subject** (a mountain, not risotto) and `caesar-salad.jpg` contains hands. Both need regeneration against a valid `GEMINI_API_KEY`: `npm run generate:recipe-images -- mushroom-risotto.jpg caesar-salad.jpg`. The prompt bug that caused this class of failure is already fixed.

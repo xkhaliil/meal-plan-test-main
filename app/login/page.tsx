@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import AuthField from "@/app/components/auth/AuthField";
 import AuthShell from "@/app/components/auth/AuthShell";
 import Reveal from "@/app/components/motion/Reveal";
@@ -12,6 +11,7 @@ import {
   messageForFailedResponse,
 } from "@/lib/apiMessage";
 import { useAuthStore } from "@/lib/stores/authStore";
+import { useTransitionStore } from "@/lib/stores/transitionStore";
 
 /** Documented in TEST_INSTRUCTIONS.md — seeded on every `prisma db seed`. */
 const DEMO = { email: "bob@example.com", password: "bob2024" };
@@ -28,7 +28,6 @@ export default function LoginPage() {
    */
   const [phase, setPhase] = useState<"idle" | "sending" | "signedIn">("idle");
   const busy = phase !== "idle";
-  const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -84,10 +83,10 @@ export default function LoginPage() {
     const next = new URLSearchParams(window.location.search).get("next");
     const destination = next && next.startsWith("/") ? next : "/recipes";
 
-    // Say so before navigating, and stay disabled until the new page replaces
-    // this one.
+    // Say so and stay disabled while the fruit carry the visitor in: they
+    // fill the screen, and `destination` opens under the panel that follows.
     setPhase("signedIn");
-    router.push(destination);
+    useTransitionStore.getState().enterKitchen(destination);
   }
 
   return (

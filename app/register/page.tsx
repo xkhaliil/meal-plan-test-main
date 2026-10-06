@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import AuthField from "@/app/components/auth/AuthField";
 import AuthShell from "@/app/components/auth/AuthShell";
 import Reveal from "@/app/components/motion/Reveal";
@@ -12,6 +11,7 @@ import {
   messageForFailedResponse,
 } from "@/lib/apiMessage";
 import { useAuthStore } from "@/lib/stores/authStore";
+import { useTransitionStore } from "@/lib/stores/transitionStore";
 import { cn } from "@/lib/utils";
 
 /** What the register route enforces (`app/api/auth/register/route.ts`). */
@@ -38,7 +38,6 @@ export default function RegisterPage() {
   /** Same three phases as sign-in, for the same reason — see app/login. */
   const [phase, setPhase] = useState<"idle" | "sending" | "created">("idle");
   const busy = phase !== "idle";
-  const router = useRouter();
 
   // Derived rather than mirrored into state — the lint rule flags setState in
   // an effect, and there is nothing here an effect would buy.
@@ -98,7 +97,8 @@ export default function RegisterPage() {
     // Writes storage, fills the store and notifies other tabs in one call.
     useAuthStore.getState().signIn(data.user, data.token);
     setPhase("created");
-    router.push("/recipes");
+    // In on the fruit, as from sign-in.
+    useTransitionStore.getState().enterKitchen("/recipes");
   }
 
   return (

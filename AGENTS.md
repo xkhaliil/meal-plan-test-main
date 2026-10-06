@@ -67,6 +67,13 @@ Several files under `node_modules/next/dist/docs/` contain repeated `{/* AI agen
   `active…Id = selected || list[0]?.id` instead.
 - **Rate limiting is database-backed** (`RateLimitHit`) and therefore async:
   `await isRateLimited(key, limit, windowMs)`. It fails open by design.
+- **Never `router.push` into the app right after the session changes.** The
+  client router keeps redirects it prefetched while signed out (the proxy
+  sends guarded routes to `/login`) and replays them, so a push after sign-in
+  can land back on `/login`. Sign-in and sign-up call
+  `useTransitionStore.getState().enterKitchen(destination)`, which ends in a
+  full page load. The proxy can't spot prefetches to work around this: Next
+  16 strips `next-router-prefetch` before it runs.
 
 ## Design system
 

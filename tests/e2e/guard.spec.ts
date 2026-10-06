@@ -25,4 +25,36 @@ test.describe("route guard", () => {
     await page.goto("/landing");
     await expect(page).toHaveURL(/\/landing/);
   });
+
+  // A production build prefetches the landing page's links into the app
+  // while the visitor is signed out, and the proxy answers those with a
+  // redirect to /login. Sign-in used to replay that redirect and stay on the
+  // login page. (The dev server doesn't prefetch, so this only bites in CI's
+  // production build.)
+  test("signing in after the landing page still opens the app", async ({
+    page,
+  }) => {
+    await page.goto("/landing");
+    await expect(page.locator(".fruit-intro")).toBeHidden({ timeout: 12_000 });
+    // The footer links to /recipes; bring it into view so it is prefetched.
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight)
+    );
+    await page.waitForTimeout(1500);
+    await page
+      .getByRole("link", { name: /^sign in$/i })
+      .last()
+      .click();
+    await expect(page).toHaveURL(/\/login/);
+
+    await page.getByLabel(/email/i).fill("bob@example.com");
+    await page.getByLabel(/^password$/i).fill("bob2024");
+    await page.getByRole("button", { name: /^sign in/i }).click();
+
+    // The fruit transition takes about three seconds before the app opens.
+    await page.waitForURL("**/recipes", { timeout: 20_000 });
+    await expect(
+      page.getByRole("heading", { name: /the catalog/i })
+    ).toBeVisible();
+  });
 });
